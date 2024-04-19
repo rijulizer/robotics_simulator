@@ -71,10 +71,24 @@ class Agent:
                     R = self.radius * (vr + vl) / (vr - vl)
                     # get linear velocity
                     v = R * w
+
                 # get the component of v in the direction of glide
                 v = v * np.cos(collision_angle)
                 # compund angle of velocity from reference frame
                 beta = self.theta + collision_angle # TODO: validate this idea wrt. different combinations
+
+
+
+                degree = np.degrees(beta) % 360  # Use modulo 360 to normalize the angle
+                remain = degree % 90  # Remainder when divided by 90
+
+                # Check if the angle needs adjusting to be closer to a multiple of 90
+                if remain > 80:
+                    # If remainder is greater than 80, add what's missing to 90 to reach the next multiple of 90
+                    beta = np.radians(degree + (90 - remain))
+                elif remain < 10:
+                    # If remainder is less than 10, subtract it from the current degree to go back to the previous multiple of 90
+                    beta = np.radians(degree - remain)
 
                 # print(f"[debug]-[agent_move]- velocity: {v}, beta: {beta}")
                 # modify positions
