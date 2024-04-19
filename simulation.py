@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 
 from agent import Agent
+from sensor import SensorManager
 from environment import Environment
 from utils import calculate_angle
 
@@ -29,7 +30,10 @@ pos_y = 200
 radius = 30
 theta = 0
 color = (255,0,0)
-agent = Agent(pos_x, pos_y , radius, theta, color)
+number_sensor = 12
+sensor_length = 20
+sensor_manager = SensorManager(pos_x,pos_y,radius,theta,number_sensor,sensor_length,env)
+agent = Agent(pos_x, pos_y , radius, theta, color, sensor_manager)
 
 # define variables
 delta_t = 1
@@ -79,6 +83,7 @@ while sim_run:
     # agent.move(vr, vl, delta_t) # simple manipulation to handle the theta increases in clock wise scenario  # Theta increases (+ve) in clock wise direction
     # draw the agent
     agent.draw(win)
+    sensor_manager.draw(win)
     
     ######
     # Check for collision and calculate angle of collision

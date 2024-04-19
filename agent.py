@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 
 class Agent:
-    def __init__(self, pos_x, pos_y , radius, theta, color):
+    def __init__(self, pos_x, pos_y , radius, theta, color, sensor_manager):
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.radius = radius
@@ -12,6 +12,7 @@ class Agent:
         self.body = None
         self.x_end = self.pos_x + self.radius * np.cos(self.theta)
         self.y_end = self.pos_y + self.radius * np.sin(self.theta)
+        self.sensor_manager = sensor_manager
     
     def move(self, vl, vr, delta_t, collison=False, collison_angles=[0]):
         # when there is no collison do normal movement
@@ -73,6 +74,8 @@ class Agent:
 
         
     def draw(self, surface):
+        # update the position of the agent to the sensor manager
+        self.sensor_manager.updatePosition(self.pos_x,self.pos_y,self.theta)
         # draw object and assign to self.body
         self.body = pygame.draw.circle(surface, self.color, (self.pos_x, self.pos_y), self.radius)
         # get the end point 
@@ -80,6 +83,7 @@ class Agent:
         self.y_end = self.pos_y + self.radius * np.sin(self.theta)
         # draw face line and assign it to line
         self.line = pygame.draw.line(surface, (0,0,0), (self.pos_x, self.pos_y), (self.x_end, self.y_end), width=int(self.radius/10))
+        self.sensor_manager.draw(surface)
 
 
 if __name__ == "__main__":
