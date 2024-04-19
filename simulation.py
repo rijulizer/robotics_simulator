@@ -73,9 +73,9 @@ while sim_run:
         agent.set_pos(old_agent_pos)
         agent.move(vr, vl, delta_t, collision_angles)
         agent.draw(win)
-        if check_collision(agent, env):
-
-            agent.set_pos(old_agent_pos)
+        # if check_collision(agent, env):
+        #
+        #     agent.set_pos(old_agent_pos)
 
     # fill the window with white
     win.fill((255, 255, 255))
