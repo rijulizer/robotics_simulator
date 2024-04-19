@@ -17,4 +17,5 @@ def calculate_angle(line, agent):
     else:
         angle_rad = np.arccos(dot_product / (magnitude1 * magnitude2))
 
-    return np.degrees(angle_rad)
+    # return np.degrees(angle_rad)
+    return angle_rad

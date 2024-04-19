@@ -51,24 +51,34 @@ class Agent:
         else:
             #Assumption: suspend any rotational motion, the agent only glides stickking to the wall
             # i,e. Only x-y changes theta remains same
-            collison_angle = collison_angles[0] # TODO: chenge the logic to handle list of theta
-            if (vl == vr):
-                v = vl
-            else:
+            # if collision happens with multiple walls it doesnt not move only rotation is allowed
+            if len(collison_angles) > 1:
                 # get angular velocity
                 w = (vr-vl)/(2 * self.radius)
-                # get the ICC radius
-                R = self.radius * (vr + vl) / (vr - vl)
-                # get linear velocity
-                v = R * w
-            # get the component of v in the direction of glide
-            v = v * np.cos(collison_angle)
-            # compund angle of velocity from reference frame
-            beta = self.theta + collison_angle # TODO: validate this idea wrt. different combinations
-            print(f"[debug]-[agent_move]- velocity: {v}, beta: {beta}")
-            # modify positions
-            self.pos_x += v * np.cos(beta) * delta_t
-            self.pos_y += v * np.sin(beta) * delta_t
+                self.theta += w * delta_t
+            else:
+                # for single collision
+                collison_angle = collison_angles[0] # TODO: chenge the logic to handle list of theta
+                if (vl == vr):
+                    v = vl
+                    # no angular velocity
+                    w = 0 
+                else:
+                    # get angular velocity
+                    w = (vr-vl)/(2 * self.radius)
+                    # get the ICC radius
+                    R = self.radius * (vr + vl) / (vr - vl)
+                    # get linear velocity
+                    v = R * w
+                # get the component of v in the direction of glide
+                v = v * np.cos(collison_angle)
+                # compund angle of velocity from reference frame
+                beta = self.theta + collison_angle # TODO: validate this idea wrt. different combinations
+                print(f"[debug]-[agent_move]- velocity: {v}, beta: {beta}")
+                # modify positions
+                self.pos_x += v * np.cos(beta) * delta_t
+                self.pos_y += v * np.sin(beta) * delta_t
+                self.theta += w * delta_t
 
 
         
