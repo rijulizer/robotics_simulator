@@ -12,6 +12,7 @@ class Agent:
         self.body = None
         self.x_end = self.pos_x + self.radius * np.cos(self.theta)
         self.y_end = self.pos_y + self.radius * np.sin(self.theta)
+        self.guided_line = None
     
     def move(self, vl, vr, delta_t, collision_angles=[]):
         # when there is no collison do normal movement
@@ -80,6 +81,11 @@ class Agent:
                 self.pos_y += v * np.sin(beta) * delta_t
                 self.theta += w * delta_t
 
+                # Debug Guided Velocity
+                self.guided_line = (self.pos_x + v * np.cos(beta) * delta_t * 10, self.pos_y + v * np.sin(beta) * delta_t * 10)
+
+
+
 
         
     def draw(self, surface):
@@ -90,6 +96,13 @@ class Agent:
         self.y_end = self.pos_y + self.radius * np.sin(self.theta)
         # draw face line and assign it to line
         self.line = pygame.draw.line(surface, (0,0,0), (self.pos_x, self.pos_y), (self.x_end, self.y_end), width=int(self.radius/10))
+
+        # debug
+        # debug
+        if self.guided_line:
+            self.guided_vel = pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
+                                               (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
+            self.guided_line = None
 
     def set_pos(self, pos: tuple):
         self.pos_x = pos[0]
