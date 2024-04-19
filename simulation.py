@@ -88,6 +88,7 @@ while sim_run:
     win.blit(text_vl, (50, 10))
     win.blit(text_vr, (50, 40))
     # win.blit(text_theta, (50, 70))
+    pygame.draw.circle(environment_surface, (0,0,0), (agent.pos_x, agent.pos_y), 2)
     agent.draw(win)
 
     # make the agent move based on the vl and vr
