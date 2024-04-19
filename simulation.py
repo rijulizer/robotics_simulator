@@ -74,7 +74,7 @@ while sim_run:
         agent.move(vr, vl, delta_t, collision_angles)
         agent.draw(win)
         if check_collision(agent, env):
-            print("collision detected")
+
             agent.set_pos(old_agent_pos)
 
     # fill the window with white
@@ -89,7 +89,7 @@ while sim_run:
     win.blit(text_vr, (50, 40))
     # win.blit(text_theta, (50, 70))
     pygame.draw.circle(environment_surface, (0,0,0), (agent.pos_x, agent.pos_y), 2)
-    agent.draw(win)
+    agent.draw(win, clear=True)
 
     # make the agent move based on the vl and vr
     # refresh the window

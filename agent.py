@@ -59,7 +59,7 @@ class Agent:
                 self.theta += w * delta_t
             else:
                 # for single collision
-                collison_angle = collision_angles[0] # TODO: chenge the logic to handle list of theta
+                collision_angle = collision_angles[0] # TODO: chenge the logic to handle list of theta
                 if (vl == vr):
                     v = vl
                     # no angular velocity
@@ -72,9 +72,10 @@ class Agent:
                     # get linear velocity
                     v = R * w
                 # get the component of v in the direction of glide
-                v = v * np.cos(collison_angle)
+                v = v * np.cos(collision_angle)
                 # compund angle of velocity from reference frame
-                beta = self.theta + collison_angle # TODO: validate this idea wrt. different combinations
+                beta = self.theta + collision_angle # TODO: validate this idea wrt. different combinations
+
                 # print(f"[debug]-[agent_move]- velocity: {v}, beta: {beta}")
                 # modify positions
                 self.pos_x += v * np.cos(beta) * delta_t
@@ -82,13 +83,13 @@ class Agent:
                 self.theta += w * delta_t
 
                 # Debug Guided Velocity
-                self.guided_line = (self.pos_x + v * np.cos(beta) * delta_t * 10, self.pos_y + v * np.sin(beta) * delta_t * 10)
+                self.guided_line = (self.pos_x + v * np.cos(beta) * delta_t * 50, self.pos_y + v * np.sin(beta) * delta_t * 50)
 
 
 
 
         
-    def draw(self, surface):
+    def draw(self, surface, clear=False):
         # draw object and assign to self.body
         self.body = pygame.draw.circle(surface, self.color, (self.pos_x, self.pos_y), self.radius)
         # get the end point 
@@ -98,11 +99,10 @@ class Agent:
         self.line = pygame.draw.line(surface, (0,0,0), (self.pos_x, self.pos_y), (self.x_end, self.y_end), width=int(self.radius/10))
 
         # debug
-        # debug
         if self.guided_line:
             self.guided_vel = pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
                                                (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
-            self.guided_line = None
+            if clear: self.guided_line = None
 
     def set_pos(self, pos: tuple):
         self.pos_x = pos[0]

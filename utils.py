@@ -18,6 +18,10 @@ def calculate_angle(line, agent):
     # Calculate dot product of vectors
     dot_product = vector1[0] * vector2[0] + vector1[1] * vector2[1]
 
+    # Calculate cross product to determine the relative direction
+    cross_product = vector1[0] * vector2[1] - vector1[1] * vector2[0]
+    angle_direction = np.sign(cross_product)
+
     # Calculate magnitudes of each vector
     magnitude1 = np.sqrt(vector1[0] ** 2 + vector1[1] ** 2)
     magnitude2 = np.sqrt(vector2[0] ** 2 + vector2[1] ** 2)
@@ -28,5 +32,8 @@ def calculate_angle(line, agent):
     else:
         angle_rad = np.arccos(dot_product / (magnitude1 * magnitude2))
 
-    # return np.degrees(angle_rad)
-    return angle_rad
+    # Calculate cross product to determine the relative direction
+    cross_product = vector1[0] * vector2[1] - vector1[1] * vector2[0]
+    angle_direction = np.sign(cross_product)  # +1 for left, -1 for right relative to agent's direction
+
+    return angle_rad * angle_direction  # Return the signed angle
