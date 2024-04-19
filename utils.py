@@ -1,4 +1,15 @@
 import numpy as np
+
+
+def check_collision(agent, env):
+    collision_angles = []
+    for line in env.line_list:
+        if line.body.colliderect(agent.body):
+            res = calculate_angle(line, agent)
+            collision_angles.append(res)
+    return collision_angles
+
+
 def calculate_angle(line, agent):
     # Calculate direction vectors for each line
     vector1 = (agent.x_end - agent.pos_x, agent.y_end - agent.pos_y)
