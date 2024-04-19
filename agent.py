@@ -74,7 +74,7 @@ class Agent:
                 v = v * np.cos(collison_angle)
                 # compund angle of velocity from reference frame
                 beta = self.theta + collison_angle # TODO: validate this idea wrt. different combinations
-                print(f"[debug]-[agent_move]- velocity: {v}, beta: {beta}")
+                # print(f"[debug]-[agent_move]- velocity: {v}, beta: {beta}")
                 # modify positions
                 self.pos_x += v * np.cos(beta) * delta_t
                 self.pos_y += v * np.sin(beta) * delta_t
