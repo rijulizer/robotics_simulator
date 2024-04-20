@@ -1,5 +1,5 @@
 import numpy as np
-from agent import Agent
+from src.environment import Line
 
 
 def euclidean_distance(x1, y1, x2, y2):
@@ -10,33 +10,31 @@ def euclidean_distance(x1, y1, x2, y2):
     return np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-def get_trace_collision(old_points: list, new_points: list, env_lines: list, agent: Agent):
-    """Checks if the traces lines collide with environemtn objects with bigger step sizes 
-
-    Args:
-        old_points (list): points on object from old timestamp
-        new_points (list): points on object from new timestamp
-        env_lines (list)
-
-    Returns:
-        line collision with
+def get_collision_point_line(old_points: list,
+                             new_points: list,
+                             env_lines: list,
+                             agent: dict
+                             ):
+    """
+    Get the collision point of the agent with the environment
     """
     assert len(old_points) == len(new_points)
+
     trace_lines = np.array([(start, end) for start, end in zip(old_points, new_points)])
     collision_lines = []
     for i in trace_lines:
         for j in env_lines:
             line_array = np.array([(j.start_x, j.start_y), (j.end_x, j.end_y)])
-            num = is_intersect(i[0], i[1], line_array[0], line_array[1])
+            points = get_position_line_intersection(i[0], i[1], line_array[0], line_array[1])
             # if the intersection point is not None, then append the line and the intersection point
-            if num:
-                collision_lines.append((num, j))
+            if points:
+                collision_lines.append((points, j))
 
     min_distance = float('inf')
     closest_point = None
     # Find the closest collision point
     for point in collision_lines:
-        distance = euclidean_distance(agent.pos_x, agent.pos_y, point[0][0], point[0][1])
+        distance = euclidean_distance(agent['pos_x'], agent['pos_y'], point[0][0], point[0][1])
         if distance < min_distance:
             min_distance = distance
             closest_point = point
@@ -44,6 +42,9 @@ def get_trace_collision(old_points: list, new_points: list, env_lines: list, age
 
 
 def closest_point_on_line(px, py, ax, ay, bx, by):
+    """
+    Calculate the closest point on a line to a given point
+    """
     # Convert points to numpy vectors
     p = np.array([px, py])
     a = np.array([ax, ay])
@@ -64,6 +65,9 @@ def closest_point_on_line(px, py, ax, ay, bx, by):
 
 
 def push_back_from_collision(pos_x, pos_y, radius, start_x, start_y, end_x, end_y):
+    """
+    Push back the agent from the collision
+    """
     closest = closest_point_on_line(pos_x, pos_y, start_x, start_y, end_x, end_y)
     direction_vector = np.array([pos_x, pos_y]) - closest
     dist_to_closest = np.linalg.norm(direction_vector)
@@ -109,25 +113,41 @@ def circle_line_intersect(pos_x, pos_y, radius, start_x, start_y, end_x, end_y):
     return distance <= radius
 
 
-def check_collision(agent, env):
+def get_wall_collision_angle(agent: dict,
+                             object_list: list):
     """
     Check if the agent collides with any of the environment objects
     :param agent: Agent object
-    :param env: Environment object
+    :param object_list: List with objects
     :return: collision_angles: List of tuples containing the angle of collision and the line object
     """
     collision_angles = []
-    for line in env.line_list:
-        if circle_line_intersect(agent.pos_x, agent.pos_y, agent.radius, line.start_x, line.start_y, line.end_x,
-                                 line.end_y):
+    for line in object_list:
+        if circle_line_intersect(agent["pos_x"],
+                                 agent["pos_y"],
+                                 agent["radius"],
+                                 line.start_x,
+                                 line.start_y,
+                                 line.end_x,
+                                 line.end_y
+                                 ):
             res = calculate_angle(line, agent)
+            line.change_color((255, 87, 51))
             collision_angles.append((res, line))
+        else:
+            line.change_color((0, 0, 0))
     return collision_angles
 
 
-def calculate_angle(line, agent):
+def calculate_angle(line: Line,
+                    agent: dict):
+    """
+    Calculate the angle of collision between the agent and the wall
+    """
     # Calculate direction vectors for each line
-    vector1 = (agent.x_end - agent.pos_x, agent.y_end - agent.pos_y)
+    x_end = agent["pos_x"] + agent["radius"] * np.cos(agent["theta"])
+    y_end = agent["pos_y"] + agent["radius"] * np.sin(agent["theta"])
+    vector1 = (x_end - agent["pos_x"], y_end - agent["pos_y"])
     vector2 = (line.end_x - line.start_x, line.end_y - line.start_y)
 
     # Calculate dot product of vectors
@@ -181,7 +201,7 @@ def seg_intersect(a1, a2, b1, b2):
     return (num / denom) * db + b1
 
 
-def is_intersect(a1, a2, b1, b2):
+def get_position_line_intersection(a1, a2, b1, b2):
     x1, y1 = a1
     x2, y2 = a2
     x3, y3 = b1
