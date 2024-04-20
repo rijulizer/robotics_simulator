@@ -62,3 +62,33 @@ def calculate_angle(line, agent):
     angle_direction = np.sign(cross_product)  # +1 for left, -1 for right relative to agent's direction
 
     return angle_rad * angle_direction  # Return the signed angle
+
+
+# Line Intersection Points Algorithm borrowed from https://www.cs.mun.ca/~rod/2500/notes/numpy-arrays/numpy-arrays.html
+def perp( a ) :
+    b = np.empty_like(a)
+    b[0] = -a[1]
+    b[1] = a[0]
+    return b
+
+# line segment a given by endpoints a1, a2
+# line segment b given by endpoints b1, b2
+def seg_intersect(a1,a2, b1,b2) :
+    """_summary_
+
+    Args:
+        a1 (np array of floats): Coordinates of one end of Line segment a
+        a2 (np array of floats): Coordinates of other end of Line segment a
+        b1 (np array of floats): Coordinates of one end of Line segment b
+        b2 (np array of floats): Coordinates of other end of Line segment a
+
+    Returns:
+        np array of floats: Coordinates of point of intersection of Line segment a and b
+    """
+    da = a2-a1
+    db = b2-b1
+    dp = a1-b1
+    dap = perp(da)
+    denom = np.dot( dap, db)
+    num = np.dot( dap, dp )
+    return (num / denom)*db + b1
