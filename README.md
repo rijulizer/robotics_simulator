@@ -2,7 +2,7 @@
 Autonomous Robotic System
 
 ## Prerequisites
-- Python 3.10.11 
+- Python >=3.10.11 
 
 ## Installation
 ### Explanation of Each Step:
