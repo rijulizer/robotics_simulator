@@ -1,5 +1,28 @@
 import numpy as np
 
+
+
+def is_trace_collision(old_points: list, new_points: list, env_lines: list):
+    """Checks if the traces lines collide with environemtn objects with bigger step sizes 
+
+    Args:
+        old_points (list): points on object from old timestamp
+        new_points (list): points on object from new timestamp
+        env_lines (list)
+
+    Returns:
+        bool:
+    """
+    assert len(old_points) == len(new_points)
+    trace_lines =  np.array([(start, end) for start, end in zip(old_points, new_points)])
+    for i in trace_lines:
+        for j in env_lines:
+            line_array = np.array([(j.start_x, j.start_y), (j.end_x, j.end_y)])
+            num = is_intersect(i[0], i[1], line_array[0], line_array[1])
+            if num:
+                return True
+    return False
+
 def point_line_distance(px, py, ax, ay, bx, by):
     """ Calculate the distance from a point (px, py) to a line defined by two points (ax, ay) and (bx, by). """
     # Vector from point A to point B
@@ -91,4 +114,34 @@ def seg_intersect(a1,a2, b1,b2) :
     dap = perp(da)
     denom = np.dot( dap, db)
     num = np.dot( dap, dp )
-    return (num / denom)*db + b1
+    return (num / denom) * db + b1
+
+def is_intersect(a1, a2, b1, b2):
+    x1, y1 = a1
+    x2, y2 = a2
+    x3, y3 = b1
+    x4, y4 = b2
+
+    # Coefficients for equations
+    A1 = y2 - y1
+    B1 = x1 - x2
+    C1 = A1 * x1 + B1 * y1
+    A2 = y4 - y3
+    B2 = x3 - x4
+    C2 = A2 * x3 + B2 * y3
+
+    # Solving equations by determinant
+    determinant = A1 * B2 - A2 * B1
+    if determinant == 0:
+        # Lines are parallel
+        return None
+    else:
+        # The intersection point
+        px = (B2 * C1 - B1 * C2) / determinant
+        py = (A1 * C2 - A2 * C1) / determinant
+
+        # Check if the intersection point is on both line segments
+        if min(x1, x2) <= px <= max(x1, x2) and min(y1, y2) <= py <= max(y1, y2) and \
+           min(x3, x4) <= px <= max(x3, x4) and min(y3, y4) <= py <= max(y3, y4):
+            return (px, py)
+        return None

@@ -116,7 +116,9 @@ class Agent:
         self.radius = pos[2]
         self.theta = pos[3]
 
-
+    def get_points_circle(self, num: int):
+        angles = [(2 * np.pi * n) / num  for n in range(num)]
+        return [(self.pos_x + self.radius * np.cos(angle), self.pos_y + self.radius * np.sin(angle)) for angle in angles]
 
 # if __name__ == "__main__":
 #     # define agent
