@@ -70,6 +70,7 @@ class Agent:
                     w = (vr-vl)/(2 * self.radius)
                     # get the ICC radius
                     # R = self.radius * (vr + vl) / (vr - vl)
+                    # Adjust rotation with collision with different vr and vl
                     R = self.radius
                     # get linear velocity
                     v = R * w
@@ -90,7 +91,7 @@ class Agent:
      
     def draw(self, surface, clear=False):
         # update the position of the agent to the sensor manager
-        self.sensor_manager.updatePosition(self.pos_x,self.pos_y,self.theta)
+        self.sensor_manager.updatePosition(self.pos_x, self.pos_y, self.theta)
         # draw object and assign to self.body
         self.body = pygame.draw.circle(surface, self.color, (self.pos_x, self.pos_y), self.radius)
         # get the end point 
@@ -102,15 +103,19 @@ class Agent:
 
         # debug
         if self.guided_line:
-            self.guided_vel = pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
-                                               (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
-            if clear: self.guided_line = None
+            pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
+                                    (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
+            self.guided_line = None
+
+    def get_pos(self):
+        return self.pos_x, self.pos_y, self.radius, self.theta
 
     def set_pos(self, pos: tuple):
         self.pos_x = pos[0]
         self.pos_y = pos[1]
         self.radius = pos[2]
         self.theta = pos[3]
+
 
 
 # if __name__ == "__main__":
@@ -123,36 +128,3 @@ class Agent:
 #     agent = Agent(pos_x, pos_y , radius, theta, color)
 #     agent.move(0,0, 5)
 #     agent.move(5,0, 5)
-#
-# def move(self, vl, vr, delta_t):
-#         # when vl=vr=v
-#         if (vl == vr):
-#             if vl != 0:
-#                 # update positions
-#                 self.pos_x += vl * delta_t * np.cos(self.theta)
-#                 self.pos_y += vl * delta_t * np.sin(self.theta)
-#
-#         else:
-#             # get angular velocity
-#             w = (vr-vl)/(2 * self.radius)
-#             # get the ICC radius
-#             R = self.radius * (vr + vl) / (vr - vl)
-#             # ICC cordinates
-#             ICC_x = self.pos_x - R * np.sin(self.theta)
-#             ICC_y = self.pos_y + R * np.cos(self.theta)
-#
-#             delta_theta = w * delta_t
-#             # define rotation matrix
-#             mat_rot = np.array([[np.cos(delta_theta), - np.sin(delta_theta), 0],
-#                                 [np.sin(delta_theta), np.cos(delta_theta), 0],
-#                                 [0, 0, 1]
-#                                 ])
-#             mat_init_icc = np.array([self.pos_x - ICC_x, self.pos_y - ICC_y, self.theta]).reshape(3,1)
-#             mat_shift_origin = np.array([ICC_x, ICC_y, delta_theta]).reshape(3,1)
-#
-#             new_pos = (np.matmul(mat_rot, mat_init_icc) + mat_shift_origin).flatten()
-#             # print("[DEBUG]-[Agent]-[move]- new_pos", new_pos, new_pos.shape)
-#             # unwrap the new positions
-#             self.pos_x = new_pos[0]
-#             self.pos_y = new_pos[1]
-#             self.theta = new_pos[2]

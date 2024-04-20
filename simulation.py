@@ -27,11 +27,11 @@ pos_x = 200
 pos_y = 200
 radius = 30
 theta = 0
-color = (255,0,0)
+color = (255, 0, 0)
 number_sensor = 12
-sensor_length = 20
-sensor_manager = SensorManager(pos_x,pos_y,radius,theta,number_sensor,sensor_length,env)
-agent = Agent(pos_x, pos_y , radius, theta, color, sensor_manager)
+sensor_length = 50
+sensor_manager = SensorManager(pos_x, pos_y, radius, theta, number_sensor, sensor_length, env)
+agent = Agent(pos_x, pos_y, radius, theta, color, sensor_manager)
 
 # define variables
 delta_t = 1
@@ -44,7 +44,7 @@ vr_min = - vr_max
 
 sim_run = True
 while sim_run:
-    pygame.time.delay(100)
+    pygame.time.delay(50)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sim_run = False
@@ -63,20 +63,18 @@ while sim_run:
                 vr -= delta_t
                 vr = max(vr, vr_min)
 
+    old_agent_pos = agent.get_pos()
 
-    old_agent_pos = (agent.pos_x, agent.pos_y, agent.radius, agent.theta)
+    agent.move(vr, vl,
+               delta_t)  # simple manipulation to handle the theta increases in clock wise scenario  # Theta
+    # increases (+ve) in clock wise direction
 
-    agent.move(vr, vl, delta_t)  # simple manipulation to handle the theta increases in clock wise scenario  # Theta increases (+ve) in clock wise direction
-
-    agent.draw(win)
-    ######
     # Check for collision and calculate angle of collision
     collision_angles = check_collision(agent, env)
 
     if collision_angles:
         agent.set_pos(old_agent_pos)
         agent.move(vr, vl, delta_t, collision_angles)
-        agent.draw(win)
         # if check_collision(agent, env):
         #
         #     agent.set_pos(old_agent_pos)
@@ -92,27 +90,15 @@ while sim_run:
     win.blit(text_vl, (50, 10))
     win.blit(text_vr, (50, 40))
     # win.blit(text_theta, (50, 70))
-    pygame.draw.circle(environment_surface, (0,0,0), (agent.pos_x, agent.pos_y), 2)
-    agent.draw(win, clear=True)
+    pygame.draw.circle(environment_surface, (0, 0, 0), (agent.pos_x, agent.pos_y), 2)
+    agent.draw(win)
 
     # make the agent move based on the vl and vr
     # agent.move(vr, vl, delta_t) # simple manipulation to handle the theta increases in clock wise scenario  # Theta increases (+ve) in clock wise direction
     # draw the agent
     agent.draw(win)
     sensor_manager.draw(win)
-    
-    # ######
-    # # Check for collision and calculate angle of collision
-    # collision_flag = False
-    # collison_angles = []
-    # for line in env.line_list:
-    #     if line.body.colliderect(agent.body):
-    #         res = calculate_angle(line, agent)
-    #         collison_angles.append(res)
-    #         collision_flag = True
-    # print(f"[Debug]-[Sim]-collision- {collision_flag}, {collison_angles}")
-    # # make the agent move based on the vl and vr
-    # agent.move(vr, vl, delta_t, collision_flag, collison_angles)  # simple manipulation to handle the theta increases in clock wise scenario  # Theta increases (+ve) in clock wise direction    
+
     # # refresh the window
     pygame.display.update()
 pygame.quit()
