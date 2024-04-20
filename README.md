@@ -18,7 +18,7 @@ Autonomous Robotic System
 - Mobile Robot Simulation (22 April 22:00)&#10003; 
 - Mobile Robot Localization (6 May 22:00) &#10007;
 - Evolutionary Robotics (27 May 22:00)  &#10007;
-- Ambition (optional) (27 May 22:00)  &#10007;
+- Ambition (optional) (31 May 22:00)  &#10007;
 
 ### Libraries Used
 - [numpy==1.26.4](https://numpy.org/)
