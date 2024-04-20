@@ -14,7 +14,7 @@ Autonomous Robotic System
 3. **Run the main.py:** This command (`python main.py`) runs your Python script.
 
 ## About the Application
-### Voting Scheme
+### Deadlines
 - Mobile Robot Simulation (22 April 22:00)&#10003; 
 - Mobile Robot Localization (6 May 22:00) &#10007;
 - Evolutionary Robotics (27 May 22:00)  &#10007;
