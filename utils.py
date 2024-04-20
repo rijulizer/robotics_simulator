@@ -1,8 +1,16 @@
 import numpy as np
+from agent import Agent
 
 
+def euclidean_distance(x1, y1, x2, y2):
+    """
+    Calculate the Euclidean distance between two points
+    :return: Euclidean distance
+    """
+    return np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
-def is_trace_collision(old_points: list, new_points: list, env_lines: list):
+
+def get_trace_collision(old_points: list, new_points: list, env_lines: list, agent: Agent):
     """Checks if the traces lines collide with environemtn objects with bigger step sizes 
 
     Args:
@@ -11,17 +19,68 @@ def is_trace_collision(old_points: list, new_points: list, env_lines: list):
         env_lines (list)
 
     Returns:
-        bool:
+        line collision with
     """
     assert len(old_points) == len(new_points)
-    trace_lines =  np.array([(start, end) for start, end in zip(old_points, new_points)])
+    trace_lines = np.array([(start, end) for start, end in zip(old_points, new_points)])
+    collision_lines = []
     for i in trace_lines:
         for j in env_lines:
             line_array = np.array([(j.start_x, j.start_y), (j.end_x, j.end_y)])
             num = is_intersect(i[0], i[1], line_array[0], line_array[1])
+            # if the intersection point is not None, then append the line and the intersection point
             if num:
-                return True
-    return False
+                collision_lines.append((num, j))
+
+    min_distance = float('inf')
+    closest_point = None
+    # Find the closest collision point
+    for point in collision_lines:
+        distance = euclidean_distance(agent.pos_x, agent.pos_y, point[0][0], point[0][1])
+        if distance < min_distance:
+            min_distance = distance
+            closest_point = point
+    return closest_point
+
+
+def closest_point_on_line(px, py, ax, ay, bx, by):
+    # Convert points to numpy vectors
+    p = np.array([px, py])
+    a = np.array([ax, ay])
+    b = np.array([bx, by])
+
+    # Vector from a to b
+    ab = b - a
+    # Vector from a to p
+    ap = p - a
+
+    # Project vector ap onto ab to find the closest point
+    epsilon = 1e-10
+    t = np.dot(ap, ab) / (np.dot(ab, ab) + epsilon)
+
+    t = max(0, min(1, t))  # Clamp t to the range [0, 1]
+    closest = a + t * ab
+    return closest
+
+
+def push_back_from_collision(pos_x, pos_y, radius, start_x, start_y, end_x, end_y):
+    closest = closest_point_on_line(pos_x, pos_y, start_x, start_y, end_x, end_y)
+    direction_vector = np.array([pos_x, pos_y]) - closest
+    dist_to_closest = np.linalg.norm(direction_vector)
+
+    # Calculate the required push distance to just touch the line
+    push_distance = radius - dist_to_closest + 1
+
+    # Normalize the direction vector
+    if dist_to_closest != 0:
+        direction_vector /= dist_to_closest
+
+    # Push back the circle
+    new_pos_x = pos_x + push_distance * direction_vector[0]
+    new_pos_y = pos_y + push_distance * direction_vector[1]
+
+    return new_pos_x, new_pos_y
+
 
 def point_line_distance(px, py, ax, ay, bx, by):
     """ Calculate the distance from a point (px, py) to a line defined by two points (ax, ay) and (bx, by). """
@@ -30,7 +89,7 @@ def point_line_distance(px, py, ax, ay, bx, by):
     # Vector from point A to point P
     ap = [px - ax, py - ay]
     # Calculate the magnitude of AB vector
-    ab_mag = np.sqrt(ab[0]**2 + ab[1]**2)
+    ab_mag = np.sqrt(ab[0] ** 2 + ab[1] ** 2)
     # Normalize the AB vector
     ab_unit = [ab[0] / ab_mag, ab[1] / ab_mag]
     # Project vector AP onto vector AB to find the closest point
@@ -40,21 +99,29 @@ def point_line_distance(px, py, ax, ay, bx, by):
     # Find the closest point using the projection length
     closest = [ax + ab_unit[0] * proj_length, ay + ab_unit[1] * proj_length]
     # Calculate the distance from the closest point to the point P
-    dist = np.sqrt((closest[0] - px)**2 + (closest[1] - py)**2)
+    dist = np.sqrt((closest[0] - px) ** 2 + (closest[1] - py) ** 2)
     return dist
+
 
 def circle_line_intersect(pos_x, pos_y, radius, start_x, start_y, end_x, end_y):
     """ Determine if a circle intersects with a line segment. """
     distance = point_line_distance(pos_x, pos_y, start_x, start_y, end_x, end_y)
-    return distance <= radius + 5
+    return distance <= radius
 
 
 def check_collision(agent, env):
+    """
+    Check if the agent collides with any of the environment objects
+    :param agent: Agent object
+    :param env: Environment object
+    :return: collision_angles: List of tuples containing the angle of collision and the line object
+    """
     collision_angles = []
     for line in env.line_list:
-        if circle_line_intersect(agent.pos_x, agent.pos_y, agent.radius, line.start_x, line.start_y, line.end_x, line.end_y):
+        if circle_line_intersect(agent.pos_x, agent.pos_y, agent.radius, line.start_x, line.start_y, line.end_x,
+                                 line.end_y):
             res = calculate_angle(line, agent)
-            collision_angles.append(res)
+            collision_angles.append((res, line))
     return collision_angles
 
 
@@ -80,23 +147,20 @@ def calculate_angle(line, agent):
     else:
         angle_rad = np.arccos(dot_product / (magnitude1 * magnitude2))
 
-    # Calculate cross product to determine the relative direction
-    cross_product = vector1[0] * vector2[1] - vector1[1] * vector2[0]
-    angle_direction = np.sign(cross_product)  # +1 for left, -1 for right relative to agent's direction
-
     return angle_rad * angle_direction  # Return the signed angle
 
 
 # Line Intersection Points Algorithm borrowed from https://www.cs.mun.ca/~rod/2500/notes/numpy-arrays/numpy-arrays.html
-def perp( a ) :
+def perp(a):
     b = np.empty_like(a)
     b[0] = -a[1]
     b[1] = a[0]
     return b
 
+
 # line segment a given by endpoints a1, a2
 # line segment b given by endpoints b1, b2
-def seg_intersect(a1,a2, b1,b2) :
+def seg_intersect(a1, a2, b1, b2):
     """_summary_
 
     Args:
@@ -108,13 +172,14 @@ def seg_intersect(a1,a2, b1,b2) :
     Returns:
         np array of floats: Coordinates of point of intersection of Line segment a and b
     """
-    da = a2-a1
-    db = b2-b1
-    dp = a1-b1
+    da = a2 - a1
+    db = b2 - b1
+    dp = a1 - b1
     dap = perp(da)
-    denom = np.dot( dap, db)
-    num = np.dot( dap, dp )
+    denom = np.dot(dap, db)
+    num = np.dot(dap, dp)
     return (num / denom) * db + b1
+
 
 def is_intersect(a1, a2, b1, b2):
     x1, y1 = a1
@@ -142,6 +207,6 @@ def is_intersect(a1, a2, b1, b2):
 
         # Check if the intersection point is on both line segments
         if min(x1, x2) <= px <= max(x1, x2) and min(y1, y2) <= py <= max(y1, y2) and \
-           min(x3, x4) <= px <= max(x3, x4) and min(y3, y4) <= py <= max(y3, y4):
+                min(x3, x4) <= px <= max(x3, x4) and min(y3, y4) <= py <= max(y3, y4):
             return (px, py)
         return None

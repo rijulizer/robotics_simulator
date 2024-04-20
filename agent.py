@@ -60,7 +60,7 @@ class Agent:
                 self.theta += w * delta_t
             else:
                 # for single collision
-                collision_angle = collision_angles[0] # TODO: chenge the logic to handle list of theta
+                collision_angle = collision_angles[0][0] # TODO: chenge the logic to handle list of theta
                 if (vl == vr):
                     v = vl
                     # no angular velocity
@@ -69,9 +69,7 @@ class Agent:
                     # get angular velocity
                     w = (vr-vl)/(2 * self.radius)
                     # get the ICC radius
-                    # R = self.radius * (vr + vl) / (vr - vl)
-                    # Adjust rotation with collision with different vr and vl
-                    R = self.radius
+                    R = self.radius * (vr + vl) / (vr - vl)
                     # get linear velocity
                     v = R * w
 

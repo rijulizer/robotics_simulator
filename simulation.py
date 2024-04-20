@@ -5,6 +5,9 @@ from agent import Agent
 from sensor import SensorManager
 from environment import Environment
 from utils import *
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')  # %(asctime)s -
 
 # intialize
 pygame.init()
@@ -34,34 +37,34 @@ sensor_manager = SensorManager(pos_x, pos_y, radius, theta, number_sensor, senso
 agent = Agent(pos_x, pos_y, radius, theta, color, sensor_manager)
 
 # define variables
-delta_t_max = 5
+delta_t_max = 1
 delta_t_curr = delta_t_max
 vl = 0
-vl_max = 5 #* delta_t
+vl_max = 5  # * delta_t
 vl_min = - vl_max
 vr = 0
-vr_max = 5 #* delta_t
+vr_max = 5  # * delta_t
 vr_min = - vr_max
 
 sim_run = True
 while sim_run:
-    pygame.time.delay(50)
+    pygame.time.delay(200)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sim_run = False
         # read movements
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                vl += 1 #delta_t
+                vl += 1  # delta_t
                 vl = min(vl, vl_max)
             elif event.key == pygame.K_s:
-                vl -= 1 #delta_t
+                vl -= 1  # delta_t
                 vl = max(vl, vl_min)
             elif event.key == pygame.K_o:
-                vr += 1 # delta_t
+                vr += 1  # delta_t
                 vr = min(vr, vl_max)
             elif event.key == pygame.K_l:
-                vr -= 1 #delta_t
+                vr -= 1  # delta_t
                 vr = max(vr, vr_min)
 
     # gt the initial / old position of agent
@@ -71,34 +74,46 @@ while sim_run:
     # make agent move
     # simple manipulation to handle the theta increases in clock wise scenario  # Theta
     # increases (+ve) in clock wise direction
-    agent.move(vr, vl, delta_t_curr) 
+    agent.move(vr, vl, delta_t_curr)
     # get and store points on circle after movement for long step collision detection
-    new_points_circle = agent.get_points_circle(8)
 
-    # Check for collision and calculate angle of collision
+    # Check on wall collisions
     collision_angles = check_collision(agent, env)
-    print(f"trace_collision - {is_trace_collision(old_points_circle, new_points_circle, env.line_list)}")
+
     if collision_angles:
         agent.set_pos(old_agent_pos)
+        # Execute move near the wall
         agent.move(vr, vl, delta_t_curr, collision_angles)
-        if check_collision(agent, env):
-            agent.set_pos(old_agent_pos)
-            delta_t_curr -= 0.1
-            delta_t_curr = max(delta_t_curr, 0.1)
-            continue
-        else:
-            delta_t_curr = delta_t_max
-    print(f"trace_collision - {is_trace_collision(old_points_circle, new_points_circle, env.line_list)}")
-    # if the agnts's trace detects collision then dont move the agent, applicable for big delta_ts
-    if is_trace_collision(old_points_circle, new_points_circle, env.line_list):
-        
-        # dont move agent = set to previous position
-        agent.set_pos(old_agent_pos)
-        # decrease step size and make sure step size never becomes less than 0.1
-        delta_t_curr -= 0.1
-        delta_t_curr = max(delta_t_curr, 0.1)
-        
+        collision_angles = check_collision(agent, env)
 
+        if collision_angles:  # if still collision, then push back
+            line = collision_angles[0][1]
+            new_x, new_y = push_back_from_collision(agent.pos_x, agent.pos_y, agent.radius,
+                                                    line.start_x, line.start_y, line.end_x, line.end_y)
+            agent.set_pos((new_x, new_y, agent.radius, agent.theta))
+
+    new_points_circle = agent.get_points_circle(8)
+
+    # Check for collision with the environment (In case of big delta)
+    collision_line = get_trace_collision(old_points_circle, new_points_circle, env.line_list, agent)
+
+    if collision_line:
+        # Push back the agent from the collision intersection
+        new_x, new_y = push_back_from_collision(agent.pos_x, agent.pos_y, agent.radius,
+                                                collision_line[0][0], collision_line[0][1], collision_line[0][0],
+                                                collision_line[0][1])
+        line = collision_line[1]
+        # Check if function does not return position out of wall
+        num = seg_intersect(np.array((agent.pos_x, agent.pos_y)),
+                            np.array((new_x, new_y)),
+                            np.array((line.start_x, line.start_y)),
+                            np.array((line.end_x, line.end_y))
+                            )
+        # if the new position is not finite (move intersect), then set the agent to the old position
+        if not np.isfinite(num).all():
+            agent.set_pos((new_x, new_y, agent.radius, agent.theta))
+        else:
+            agent.set_pos(old_agent_pos)
 
     # fill the window with white
     win.fill((255, 255, 255))
@@ -113,9 +128,6 @@ while sim_run:
     # win.blit(text_theta, (50, 70))
     pygame.draw.circle(environment_surface, (0, 0, 0), (agent.pos_x, agent.pos_y), 2)
     agent.draw(win)
-
-    # make the agent move based on the vl and vr
-    # agent.move(vr, vl, delta_t) # simple manipulation to handle the theta increases in clock wise scenario  # Theta increases (+ve) in clock wise direction
     # draw the agent
     agent.draw(win)
     sensor_manager.draw(win)
