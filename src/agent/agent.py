@@ -10,7 +10,8 @@ class Agent:
                  pos_x: float,
                  pos_y: float,
                  radius: int,
-                 theta: float):
+                 theta: float
+                 ):
         # Changeable Components
         self.pos_x = pos_x
         self.pos_y = pos_y
@@ -26,91 +27,103 @@ class Agent:
         self.sensor_manager = None
         self.guided_line = None
 
-    def move(self,
-             vl: float,
-             vr: float,
-             delta_t: float,
-             collision_angles=None):
-        # If no collision, then execute normal behavior
-        if not collision_angles:
-            # when vl=vr=v
-            if vl == vr:
-                if vl != 0:
-                    # update positions
-                    self.pos_x += vl * delta_t * np.cos(self.theta)
-                    self.pos_y += vl * delta_t * np.sin(self.theta)
+    def standard_move(self,
+                      vl: float,
+                      vr: float,
+                      delta_t: float
+                      ):
+        """
+        Execute standard move
+        """
+        # when vl=vr=v
+        if vl == vr:
+            if vl != 0:
+                # update positions
+                self.pos_x += vl * delta_t * np.cos(self.theta)
+                self.pos_y += vl * delta_t * np.sin(self.theta)
 
+        else:
+            # get angular velocity
+            w = (vr - vl) / (2 * self.radius)
+            # get the ICC radius
+            R = self.radius * (vr + vl) / (vr - vl)
+            # ICC coordinates
+            ICC_x = self.pos_x - R * np.sin(self.theta)
+            ICC_y = self.pos_y + R * np.cos(self.theta)
+
+            delta_theta = w * delta_t
+            # Define rotation matrix
+            mat_rot = np.array([[np.cos(delta_theta), - np.sin(delta_theta), 0],
+                                [np.sin(delta_theta), np.cos(delta_theta), 0],
+                                [0, 0, 1]
+                                ])
+            mat_init_icc = np.array([self.pos_x - ICC_x, self.pos_y - ICC_y, self.theta]).reshape(3, 1)
+            mat_shift_origin = np.array([ICC_x, ICC_y, delta_theta]).reshape(3, 1)
+
+            new_pos = (np.matmul(mat_rot, mat_init_icc) + mat_shift_origin).flatten()
+
+            # unwrap the new positions
+            self.pos_x = new_pos[0]
+            self.pos_y = new_pos[1]
+            self.theta = new_pos[2]
+
+    def collision_move(self,
+                       vl: float,
+                       vr: float,
+                       delta_t: float,
+                       collision_angles: list
+                       ):
+        """
+        Execute collision move
+
+        Assumption: suspend any rotational motion, the agent only glides sticking to the wall
+            i,e. Only x-y changes theta remains same TODO: Do we need this?
+        """
+
+        # if collision happens with multiple walls it does not move only rotation is allowed
+        if len(collision_angles) > 1:
+            # get angular velocity
+            w = (vr - vl) / (2 * self.radius)
+            self.theta += w * delta_t
+        else:
+            # for single collision
+            collision_angle = collision_angles[0][0]  # TODO: change the logic to handle list of theta
+            if vl == vr:
+                v = vl
+                # no angular velocity
+                w = 0
             else:
                 # get angular velocity
                 w = (vr - vl) / (2 * self.radius)
                 # get the ICC radius
                 R = self.radius * (vr + vl) / (vr - vl)
-                # ICC coordinates
-                ICC_x = self.pos_x - R * np.sin(self.theta)
-                ICC_y = self.pos_y + R * np.cos(self.theta)
+                # get linear velocity
+                v = R * w
 
-                delta_theta = w * delta_t
-                # Define rotation matrix
-                mat_rot = np.array([[np.cos(delta_theta), - np.sin(delta_theta), 0],
-                                    [np.sin(delta_theta), np.cos(delta_theta), 0],
-                                    [0, 0, 1]
-                                    ])
-                mat_init_icc = np.array([self.pos_x - ICC_x, self.pos_y - ICC_y, self.theta]).reshape(3, 1)
-                mat_shift_origin = np.array([ICC_x, ICC_y, delta_theta]).reshape(3, 1)
+            # get the component of v in the direction of glide
+            v = v * np.cos(collision_angle)
+            # compute angle of velocity from reference frame
+            beta = self.theta + collision_angle  # TODO: validate this idea wrt. different combinations
 
-                new_pos = (np.matmul(mat_rot, mat_init_icc) + mat_shift_origin).flatten()
+            # modify positions
+            self.pos_x += v * np.cos(beta) * delta_t
+            self.pos_y += v * np.sin(beta) * delta_t
+            self.theta += w * delta_t
 
-                # unwrap the new positions
-                self.pos_x = new_pos[0]
-                self.pos_y = new_pos[1]
-                self.theta = new_pos[2]
-        else:  # case of collision
-            # Assumption: suspend any rotational motion, the agent only glides sticking to the wall
-            # i,e. Only x-y changes theta remains same
-            # if collision happens with multiple walls it does not move only rotation is allowed
-            if len(collision_angles) > 1:
-                # get angular velocity
-                w = (vr - vl) / (2 * self.radius)
-                self.theta += w * delta_t
-            else:
-                # for single collision
-                collision_angle = collision_angles[0][0]  # TODO: change the logic to handle list of theta
-                if vl == vr:
-                    v = vl
-                    # no angular velocity
-                    w = 0
-                else:
-                    # get angular velocity
-                    w = (vr - vl) / (2 * self.radius)
-                    # get the ICC radius
-                    R = self.radius * (vr + vl) / (vr - vl)
-                    # get linear velocity
-                    v = R * w
-
-                # get the component of v in the direction of glide
-                v = v * np.cos(collision_angle)
-                # compute angle of velocity from reference frame
-                beta = self.theta + collision_angle  # TODO: validate this idea wrt. different combinations
-
-                # modify positions
-                self.pos_x += v * np.cos(beta) * delta_t
-                self.pos_y += v * np.sin(beta) * delta_t
-                self.theta += w * delta_t
-
-                # Guided Line
-                self.guided_line = (
-                    self.pos_x + v * np.cos(beta) * delta_t * 50, self.pos_y + v * np.sin(beta) * delta_t * 50)
+            # Guided Line
+            self.guided_line = (
+                self.pos_x + v * np.cos(beta) * delta_t * 50, self.pos_y + v * np.sin(beta) * delta_t * 50)
 
     def get_agent_stats(self):
         """
         Get agent Position
         """
         return {
-                "pos_x": self.pos_x,
-                "pos_y": self.pos_y,
-                "theta": self.theta,
-                "radius": self.radius,
-                }
+            "pos_x": self.pos_x,
+            "pos_y": self.pos_y,
+            "theta": self.theta,
+            "radius": self.radius,
+        }
 
     def set_agent_stats(self, stats: dict):
         """

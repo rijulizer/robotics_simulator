@@ -14,8 +14,8 @@ def simulate(agent: Agent,
     # Get current circle points of the agent
     curr_points_circle = agent.get_points_circle(8)
 
-    # Execute the move
-    agent.move(vr, vl, delta_t_curr)
+    # Execute the standard move
+    agent.standard_move(vr, vl, delta_t_curr)
 
     # Check on wall collisions
     collision_angles = get_wall_collision_angle(agent.get_agent_stats(),
@@ -25,8 +25,8 @@ def simulate(agent: Agent,
         # Reset the agent position
         agent.set_agent_stats(curr_pos)
 
-        # Execute move near the wall
-        agent.move(vr, vl, delta_t_curr, collision_angles)
+        # Execute collision move (near the wall)
+        agent.collision_move(vr, vl, delta_t_curr, collision_angles)
 
         # If still collision, then push back from the collision
         collision_angles = get_wall_collision_angle(agent.get_agent_stats(),
