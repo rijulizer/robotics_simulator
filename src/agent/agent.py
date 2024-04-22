@@ -77,7 +77,7 @@ class Agent:
         Execute collision move
 
         Assumption: suspend any rotational motion, the agent only glides sticking to the wall
-            i,e. Only x-y changes theta remains same TODO: Do we need this?
+            i,e. Only x-y changes theta remains same
         """
 
         # if collision happens with multiple walls it does not move only rotation is allowed

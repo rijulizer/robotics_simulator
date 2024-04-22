@@ -92,8 +92,10 @@ def run_simulation(
         # Wheel velocity display
         text_vl = font.render(f"v_l: {vl}", True, (0, 0, 0))
         text_vr = font.render(f"v_r: {vr}", True, (0, 0, 0))
+        text_delta_t = font.render(f"delta_t: {delta_t}", True, (0, 0, 0))
         win.blit(text_vl, (50, 10))
         win.blit(text_vr, (50, 40))
+        win.blit(text_delta_t, (50, 70))
 
         # Agent trajectory
         pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
