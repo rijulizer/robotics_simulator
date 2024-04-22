@@ -1,4 +1,4 @@
-# Mobile Robot
+# Mobile Robot GROUP 13
 Autonomous Robotic System
 
 ## Prerequisites
@@ -12,6 +12,11 @@ Autonomous Robotic System
 2. **Install Required Libraries:** The `cd` command changes the directory to your project folder. The `pip install -r requirements.txt` command installs the Python packages listed in the `requirements.txt` file, which you should have in the same directory as your project files.
 
 3. **Run the main.py:** This command (`python main.py`) runs your Python script.
+
+## Contributors 
+- Dumitru Verşebeniuc
+- Riju Mukherjee
+- Tauseef Ahmed
 
 ## About the Application
 ### Deadlines
