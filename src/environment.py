@@ -40,13 +40,11 @@ class Environment:
         line_3_start_pos_y = border_y  # starts from the top
         line_3_end_pos_y = int((border_y + border_height) - border_height / 3)
 
-        # define the rectangular border
-        c = 100  # this is to adjust the frame
-
-        self.line_list.append(Line(win, border_x, border_y, border_x, border_height + c))
-        self.line_list.append(Line(win, border_x, border_y, border_len + c, border_y))
-        self.line_list.append(Line(win, border_len + c, border_y, border_len + c, border_height + c))
-        self.line_list.append(Line(win, border_len + c, border_height + c, border_x, border_height + c))
+        # define the rectangular border with lines
+        self.line_list.append(Line(win, border_x, border_y, border_x, border_y + border_height))
+        self.line_list.append(Line(win, border_x, border_y, border_x + border_len, border_y))
+        self.line_list.append(Line(win, border_x + border_len, border_y, border_x + border_len, border_y + border_height))
+        self.line_list.append(Line(win, border_x + border_len, border_y + border_height, border_x, border_y + border_height))
 
         # draw obstacle lines
         self.line_list.append(Line(win, line_1_start_pos_x, line_1_start_pos_y, line_1_end_pos_x, line_1_end_pos_y))
