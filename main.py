@@ -27,6 +27,8 @@ def run_simulation(
     environment_surface.fill((255, 255, 255))
     # Initialize and draw environment
     env = Environment(environment_surface)
+    # put landmarks on the environment
+    env.put_landmarks(environment_surface)
 
     # define agent
     pos_x = 200

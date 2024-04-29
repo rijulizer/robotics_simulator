@@ -50,3 +50,29 @@ class Environment:
         self.line_list.append(Line(win, line_1_start_pos_x, line_1_start_pos_y, line_1_end_pos_x, line_1_end_pos_y))
         self.line_list.append(Line(win, line_2_start_pos_x, line_2_start_pos_y, line_2_end_pos_x, line_2_end_pos_y))
         self.line_list.append(Line(win, line_3_start_pos_x, line_3_start_pos_y, line_3_end_pos_x, line_3_end_pos_y))
+        # list of env joints points
+        self.points = [
+            [line_1_start_pos_x, line_1_start_pos_y],
+            [line_1_end_pos_x, line_1_end_pos_y],
+            [line_2_start_pos_x, line_2_start_pos_y],
+            [line_2_end_pos_x, line_2_end_pos_y],
+            [line_3_start_pos_x, line_3_start_pos_y],
+            [line_3_end_pos_x, line_3_end_pos_y],
+            [border_x, border_y],
+            [border_x, border_y + border_height],
+            [border_x + border_len, border_y],
+            [border_x + border_len, border_y + border_height]
+        ]
+   
+    def put_landmarks(self, win):
+
+        # put landmarks on the environment
+        # TODO: now all points are put as landmarks, we can put only some of them randomly and experiment
+        self.landmarks = []
+        for i, point in enumerate(self.points):
+            pygame.draw.circle(win, (255, 0, 0), (point[0], point[1]), 7)
+            # add signatures to the landmarks
+            self.landmarks.append([point[0], point[1], i])
+        
+        
+        
