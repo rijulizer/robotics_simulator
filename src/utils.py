@@ -1,5 +1,6 @@
 import numpy as np
 from src.environment import Line
+import sympy as sp
 
 
 def euclidean_distance(x1, y1, x2, y2):
@@ -230,3 +231,34 @@ def get_position_line_intersection(a1, a2, b1, b2):
                 min(x3, x4) <= px <= max(x3, x4) and min(y3, y4) <= py <= max(y3, y4):
             return (px, py)
         return None
+
+def atan2(x, y):
+    """Extends the inverse tangent function to all four quadrants."""
+    if x == 0:
+        if y == 0:
+            return 0
+        else:
+            return np.sign(y) * np.pi / 2
+    elif x > 0:
+        return np.arctan(float(y / x))
+    else:
+        return np.sign(y) * (np.pi - np.arctan(abs(float(y / x))))
+
+def circle_intersectoins(circle_1_points, circle_2_points):
+    """
+    Calculate the intersection points of two circles.
+
+    Parameters:
+    circle_1_points (tuple): The center coordinates (x, y) and radius of the first circle.
+    circle_2_points (tuple): The center coordinates (x, y) and radius of the second circle.
+    
+    Returns:
+    list: A list of tuples representing the coordinates of the intersection points.
+    """
+    # circulate to get the point of intersection
+    c1 = sp.Circle((circle_1_points[0], circle_1_points[1]), circle_1_points[2])
+    c2 = sp.Circle((circle_2_points[0], circle_2_points[1]), circle_2_points[2])
+    intersection_points = c1.intersection(c2)
+    # get the coordinates of the intersection points
+    intersection_points = [(point.x, point.y) for point in [point.evalf() for point in intersection_points]]
+    return intersection_points

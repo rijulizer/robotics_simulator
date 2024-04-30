@@ -1,6 +1,6 @@
 import numpy as np
 
-def kalaman_filter(mean, cov, controls, measurements, delta_t):
+def kalman_filter(mean, cov, controls, measurements, delta_t):
     """
     Implements the Kalman filter algorithm for state estimation.
 

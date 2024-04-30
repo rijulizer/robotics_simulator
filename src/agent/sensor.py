@@ -3,7 +3,7 @@ import numpy as np
 from pygame import Surface
 import pygame
 
-from src.utils import seg_intersect
+from src.utils import seg_intersect, euclidean_distance, atan2
 
 
 class SensorLine:
@@ -168,3 +168,19 @@ class SensorManager:
                 self.theta + self.sensor_points_rad[i])),
                                                 (self.pos_y + (self.radius + self.sensor_length + self.delta_list[
                                                     i]) * np.sin(self.theta + self.sensor_points_rad[i]))))
+    
+    def scan_landmarks(self, landmarks: list):
+        """Scan the landmarks in the environment and get the range and bearing information
+        
+        """
+        #TODO: Detect the landmarks which are in the range and modify the landmarks list (make sure to have the same name)
+        detected_landmarks = []
+        for beacon in landmarks:
+            range_i = euclidean_distance(self.pos_x, self.pos_y, beacon[0], beacon[1])
+            bear_i = atan2(beacon[0] - self.pos_x, beacon[1] - self.pos_y) - self.theta
+            # append the range and bear information along with the cordinates and signature of the beacon
+            detected_landmarks.append([beacon[0], beacon[1], beacon[2], range_i, bear_i])
+        return detected_landmarks
+    
+
+        
