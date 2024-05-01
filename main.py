@@ -37,7 +37,7 @@ def run_simulation(
     theta = 0
 
     number_sensors = 12
-    sensor_length = 50
+    sensor_length = 150
 
     agent = Agent(pos_x, pos_y, radius, theta)
 
@@ -66,7 +66,7 @@ def run_simulation(
 
     sim_run = True
     while sim_run:
-        pygame.time.delay(50)
+        pygame.time.delay(25)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sim_run = False
@@ -84,10 +84,9 @@ def run_simulation(
                 elif event.key == pygame.K_l:
                     vr -= 1  # delta_t
                     vr = max(vr, vr_min)
-
-        # detect landmarks
-        detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
-        success = simulate(agent, env.line_list, vr, vl, delta_t_curr, detected_landmarks)
+        
+        # core logic starts here
+        success = simulate(agent, env.line_list, vr, vl, delta_t_curr, env.landmarks)
 
         if not success:
             delta_t_curr -= 0.1
@@ -115,15 +114,15 @@ def run_simulation(
 
         # Agent trajectory
         pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
-        pygame.draw.circle(environment_surface, (134, 39, 4), (agent.bel_pos_x, agent.bel_pos_y), 2)
-        # numpy radian to degree
+        pygame.draw.circle(environment_surface, (240, 90, 90), (agent.bel_pos_x, agent.bel_pos_y), 2)
+        # numpy radian to degre
 
 
         # detect landmarks
-        detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
-        for i in detected_landmarks:
-            landmark_phi = font.render(f"{i[0], i[1], round(i[4]* 180 / 3.14,2)}", True, (0, 0, 0))
-            win.blit(landmark_phi, (i[0], i[1]))
+        # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
+        # for i in detected_landmarks:
+        #     landmark_phi = font.render(f"{i[0], i[1], round(i[4]* 180 / 3.14,2)}", True, (0, 0, 0))
+        #     win.blit(landmark_phi, (i[0], i[1]))
         
         agent.draw(win)  # Draw agent components
 

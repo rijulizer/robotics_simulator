@@ -17,7 +17,7 @@ def get_collision_point_line(old_points: list,
                              agent: dict
                              ):
     """
-    Get the collision point of the agent with the environment
+    Get the collision point of the agent with the environment, collision detetcion for big time steps with trace lines
     """
     assert len(old_points) == len(new_points)
 
@@ -262,3 +262,57 @@ def circle_intersectoins(circle_1_points, circle_2_points):
     # get the coordinates of the intersection points
     intersection_points = [(point.x, point.y) for point in [point.evalf() for point in intersection_points]]
     return intersection_points
+
+# check if a point lies on a line defined by two points using sympy
+def point_on_line(point, line):
+    """
+    Check if a point lies on a line defined by two points.
+
+    Parameters:
+    point (tuple): The coordinates of the point.
+    line (tuple): (Ex: ((0,0), (2,2)))The coordinates of the two points defining the line.
+    
+    Returns:
+    bool: True if the point lies on the line, False otherwise.
+    """
+    # create the line using the two points
+    line = sp.Line(line[0], line[1])
+    # create the point using the coordinates
+    point = sp.Point(point)
+    # check if the point lies on the line
+    return line.contains(point)
+
+# check if a circle intersects a line defined by two points
+# def circle_line_intersection(circle, line):
+#     """
+#     Check if a circle intersects a line defined by two points.
+
+#     Parameters:
+#     circle (tuple): The center coordinates (x, y) and radius of the circle.
+#     line (tuple): The coordinates of the two points defining the line.
+    
+#     Returns:
+#     bool: True if the circle intersects the line, False otherwise.
+#     """
+#     # create the circle using the center and radius
+#     circle = sp.Circle((circle[0], circle[1]), circle[2])
+#     # create the line using the two points
+#     line = sp.Line(line[0], line[1])
+#     # check if the circle intersects the line
+#     return circle.intersect(line) != [] 
+# check if a circle intersects a line defined by two points the most optimised way without using sympy
+def circle_line_intersection(circle, line):
+    """
+    Check if a circle intersects a line defined by two points.
+
+    Parameters:
+    circle (tuple): The center coordinates (x, y) and radius of the circle.
+    line (tuple): The coordinates of the two points defining the line.
+    
+    Returns:
+    bool: True if the circle intersects the line, False otherwise.
+    """
+    # calculate the distance from the center of the circle to the line
+    distance = point_line_distance(circle[0], circle[1], line[0][0], line[0][1], line[1][0], line[1][1])
+    # return True if the distance is less than the radius of the circle
+    return distance <= circle[2]

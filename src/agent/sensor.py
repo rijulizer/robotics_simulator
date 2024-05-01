@@ -2,9 +2,9 @@ import math
 import numpy as np
 from pygame import Surface
 import pygame
+import logging
 
-from src.utils import seg_intersect, euclidean_distance, atan2
-
+from src.utils import seg_intersect, euclidean_distance, atan2, point_on_line, circle_line_intersection
 
 class SensorLine:
     def __init__(self,
@@ -32,7 +32,7 @@ class SensorLine:
         self.sensor_length = sensor_length
         self.body = None
 
-    def get_sensor_pt(self,
+    def get_intersection_pt(self,
                       robot_pt: list,
                       line_pt1: np.ndarray,
                       line_pt2: np.ndarray
@@ -57,6 +57,16 @@ class SensorLine:
         dist = max(min(dist, self.sensor_length), 0)
         dist = np.nan_to_num(dist, False, nan=0.0)
         return dist
+    
+    def get_end_points(self):
+        """Get the end points of the sensor line segment"""
+        
+        x1 = self.pos_x + self.radius * np.cos(self.f_theta)
+        y1 = self.pos_y + self.radius * np.sin(self.f_theta)
+        x2 = self.pos_x + (self.radius + self.sensor_length) * np.cos(self.f_theta)
+        y2 = self.pos_y + (self.radius + self.sensor_length) * np.sin(self.f_theta)
+        return x1, y1, x2, y2
+
 
     def update(self,
                agent_stats: dict
@@ -69,11 +79,9 @@ class SensorLine:
     def draw(self,
              surface: Surface
              ):
-        self.body = pygame.draw.line(surface, (0, 0, 0), (
-            self.pos_x + self.radius * np.cos(self.f_theta), self.pos_y + self.radius * np.sin(self.f_theta)), (
-                                         self.pos_x + (self.radius + self.sensor_length) * np.cos(self.f_theta),
-                                         self.pos_y + (self.radius + self.sensor_length) * np.sin(self.f_theta)),
-                                     width=int(self.radius / 10))
+        # get end points of sensor lines
+        x1, y1, x2, y2 = self.get_end_points()
+        self.body = pygame.draw.line(surface, (0, 0, 0), (x1, y1), (x2, y2), width=int(self.radius / 10))
 
 
 class SensorManager:
@@ -107,6 +115,8 @@ class SensorManager:
         self.sensors = []
         self.object_list = object_list
         self.previous_sensor_collision = False
+
+        self.detected_landmarks = []
 
         for i in range(self.no_sensor):
             sl = SensorLine(agent_stats,
@@ -151,7 +161,7 @@ class SensorManager:
                 if line.body.colliderect(sensor_line.body):
                     line_pt1 = np.array([line.start_x, line.start_y])
                     line_pt2 = np.array([line.end_x, line.end_y])
-                    dist = sensor_line.get_sensor_pt(robot_pt, line_pt1, line_pt2)
+                    dist = sensor_line.get_intersection_pt(robot_pt, line_pt1, line_pt2)
                     dist = math.floor(dist) - 1
                     self.update_sensor_text(sensor_line.index, dist)
                     self.previous_sensor_collision = True
@@ -168,18 +178,45 @@ class SensorManager:
                 self.theta + self.sensor_points_rad[i])),
                                                 (self.pos_y + (self.radius + self.sensor_length + self.delta_list[
                                                     i]) * np.sin(self.theta + self.sensor_points_rad[i]))))
-    
     def scan_landmarks(self, landmarks: list):
         """Scan the landmarks in the environment and get the range and bearing information
         
         """
-        #TODO: Detect the landmarks which are in the range and modify the landmarks list (make sure to have the same name)
+        # iterate through all sensors and lands marks and check if the landmark point lies on the sensor line
         detected_landmarks = []
-        for beacon in landmarks:
-            range_i = euclidean_distance(self.pos_x, self.pos_y, beacon[0], beacon[1])
-            bear_i = atan2(beacon[0] - self.pos_x, beacon[1] - self.pos_y) - self.theta
-            # append the range and bear information along with the cordinates and signature of the beacon
-            detected_landmarks.append([beacon[0], beacon[1], beacon[2], range_i, bear_i])
+        for landmark in landmarks:
+            range_i = euclidean_distance(self.pos_x, self.pos_y, landmark[0], landmark[1])
+            # if the beacon is within the sensor range of the agent
+            # TODO: two cases are posiible for senssing landomark
+            # 1. only if sensor line intersects with beacon 2 then we detect beacon
+            # 2, if the beacon is within the sensor range of the agent then we can detect the beacon
+            # case -1
+            # if range_i < self.sensor_length:
+            #     for sensor in self.sensors:
+            #         # check if the landmark circle intersects the sensor line, 
+            #         # making the landmark a circle instead of a point circumvents some error induced by typecasting
+            #         x1,y1,x2,y2 = sensor.get_end_points()
+            #         # if point_on_line((int(landmark[0]), int(landmark[1])), ((int(x1),int(y1)),(int(x2),int(y2)))):
+            #         if circle_line_intersection((int(landmark[0]), int(landmark[1]), 7), ((int(x1),int(y1)),(int(x2),int(y2)))):
+            #             bear_i = atan2(landmark[0] - self.pos_x, landmark[1] - self.pos_y) - self.theta
+            #             #TODO: Bearing can also be calculated from sensor angle of the particular sensor
+            #             # append the range and bear information along with the cordinates and signature of the beacon
+            #             detected_landmarks.append([landmark[0], landmark[1], landmark[2], range_i, bear_i])
+            #             break
+            # case -2
+            if range_i < self.sensor_length:
+                bear_i = atan2(landmark[0] - self.pos_x, landmark[1] - self.pos_y) - self.theta
+                #TODO: Bearing can also be calculated from sensor angle of the particular sensor
+                # append the range and bear information along with the cordinates and signature of the beacon
+                detected_landmarks.append([landmark[0], landmark[1], landmark[2], range_i, bear_i])
+        # #TODO: Detect the landmarks which are in the range and modify the landmarks list (make sure to have the same name)
+        # detected_landmarks = []
+        # for beacon in landmarks:
+        #     range_i = euclidean_distance(self.pos_x, self.pos_y, beacon[0], beacon[1])
+        #     bear_i = atan2(beacon[0] - self.pos_x, beacon[1] - self.pos_y) - self.theta
+        #     # append the range and bear information along with the cordinates and signature of the beacon
+        #     detected_landmarks.append([beacon[0], beacon[1], beacon[2], range_i, bear_i])
+        self.detected_landmarks = detected_landmarks
         return detected_landmarks
     
 

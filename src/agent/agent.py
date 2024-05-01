@@ -32,6 +32,8 @@ class Agent:
         self.sensor_manager = None
         self.guided_line = None
 
+        self.bel_cov = None
+
     def standard_move(self,
                       vl: float,
                       vr: float,
@@ -182,35 +184,42 @@ class Agent:
         self.line = pygame.draw.line(surface, (0, 0, 0), (self.pos_x, self.pos_y), (x_end, y_end),
                                      width=int(self.radius / 10))
 
-        # Draw
+        # Draw sensor lines
         self.sensor_manager.draw(surface)
 
         # Guided Line near the walls
-        if self.guided_line:
-            pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
-                             (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
-            self.guided_line = None
+        # if self.guided_line:
+        #     pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
+        #                      (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
+        #     self.guided_line = None
+        if len(self.sensor_manager.detected_landmarks) > 0:
+            for landmark in self.sensor_manager.detected_landmarks:
+                # draw line from agent to the landmark
+                pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark[0], landmark[1]), width=3)
 
-    def get_current_belief(self, detected_landmarks: list):
+        #TODO: draw the belief covariance ellipse
+        
+    def set_current_belief(self, detected_landmarks: list):
         """
         Get the belief of the agent from detected landmarks
         """
-        # TODO: put more corner case testing
-        # get the last 2 landmarks
-        detected_landmarks = detected_landmarks[:-2]
-        beacon_1 = detected_landmarks[0]
-        beacon_2 = detected_landmarks[1]
-        # get the two points of intersection of the two circles
-        pos_points = circle_intersectoins([beacon_1[0], beacon_1[1], beacon_1[3]], [beacon_2[0], beacon_2[1], beacon_2[3]])
-        delta_min = np.inf
-        for x,y in pos_points:
-            delta = abs((atan2(beacon_1[0] - x, beacon_1[1]- y) -  beacon_1[4]) 
-                - (atan2(beacon_2[0] - x, beacon_2[1] - y) - beacon_2[4]))
-            if delta < delta_min:
-                delta_min = delta
-                self.bel_pos_x = int(x)
-                self.bel_pos_y = int(y)
-        self.bel_theta = round(atan2(beacon_1[0] - self.bel_pos_x, beacon_1[1] - self.bel_pos_y) -  beacon_1[4],1)
+        # if there are less than two landmarks detected, then simply assume the last belief
+        if len(detected_landmarks) >= 2:
+            # get the last 2 landmarks
+            detected_landmarks = detected_landmarks[-2:]
+            beacon_1 = detected_landmarks[0]
+            beacon_2 = detected_landmarks[1]
+            # get the two points of intersection of the two circles
+            pos_points = circle_intersectoins([beacon_1[0], beacon_1[1], beacon_1[3]], [beacon_2[0], beacon_2[1], beacon_2[3]])
+            delta_min = np.inf
+            for x,y in pos_points:
+                delta = abs((atan2(beacon_1[0] - x, beacon_1[1]- y) -  beacon_1[4]) 
+                    - (atan2(beacon_2[0] - x, beacon_2[1] - y) - beacon_2[4]))
+                if delta < delta_min:
+                    delta_min = delta
+                    self.bel_pos_x = int(x)
+                    self.bel_pos_y = int(y)
+            self.bel_theta = round(atan2(beacon_1[0] - self.bel_pos_x, beacon_1[1] - self.bel_pos_y) -  beacon_1[4],1)
 
     def apply_filter(self, v: float, w: float, delta_t: float, detected_landmarks: list):
         """
@@ -220,8 +229,8 @@ class Agent:
         mean = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
         cov = np.diag(np.random.rand(len(mean)))
         controls = np.array([v, w])
-        # get the latest measurements by getting the current belief
-        self.get_current_belief(detected_landmarks)
+        # set the latest measurements by getting the current belief
+        self.set_current_belief(detected_landmarks)
         measurements = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
         
         mean, cov = kalman_filter(mean, cov, controls, measurements, delta_t)
@@ -229,7 +238,7 @@ class Agent:
         self.bel_pos_x = mean[0]
         self.bel_pos_y = mean[1]
         self.bel_theta = mean[2]
-        self.cov = cov
+        self.bel_cov = cov
 
             
         

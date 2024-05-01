@@ -1,19 +1,24 @@
+import logging
+
 from src.agent.agent import Agent
 from src.utils import *
-
 
 def simulate(agent: Agent,
              object_list: list,
              vr: float,
              vl: float,
              delta_t_curr: float,
-             detected_landmarks: list) -> bool:
+             env_landmarks: list,
+             ) -> bool:
 
     # Current agent position
     curr_pos = agent.get_agent_stats()
 
     # Get current circle points of the agent
     curr_points_circle = agent.get_points_circle(8)
+
+    # detect landmarks
+    detected_landmarks = agent.sensor_manager.scan_landmarks(env_landmarks)
 
     # Execute the standard move
     agent.standard_move(vr, vl, delta_t_curr, detected_landmarks)
