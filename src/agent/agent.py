@@ -44,6 +44,8 @@ class Agent:
         Execute standard move
         """
         # when vl=vr=v
+        v = 0
+        w = 0 
         if vl == vr:
             if vl != 0:
                 # update positions
@@ -56,7 +58,7 @@ class Agent:
             w = (vr - vl) / (2 * self.radius)
             # get the ICC radius
             R = self.radius * (vr + vl) / (vr - vl)
-            v = R*w
+            v = R * w
             # ICC coordinates
             ICC_x = self.pos_x - R * np.sin(self.theta)
             ICC_y = self.pos_y + R * np.cos(self.theta)
@@ -77,8 +79,8 @@ class Agent:
             self.pos_y = new_pos[1]
             self.theta = new_pos[2]
 
-            # update belief
-            self.apply_filter(v, w, delta_t, detected_landmarks)
+        # update belief
+        self.apply_filter(v, w, delta_t, detected_landmarks)
 
     def collision_move(self,
                        vl: float,
@@ -196,9 +198,6 @@ class Agent:
             for landmark in self.sensor_manager.detected_landmarks:
                 # draw line from agent to the landmark
                 pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark[0], landmark[1]), width=3)
-
-        #TODO: draw the belief covariance ellipse
-        
     def set_current_belief(self, detected_landmarks: list):
         """
         Get the belief of the agent from detected landmarks
