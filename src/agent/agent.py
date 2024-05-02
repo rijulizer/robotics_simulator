@@ -3,8 +3,8 @@ import pygame
 from pygame import Surface
 
 from src.agent.sensor import SensorManager
-
-
+from src.utils import circle_intersectoins, atan2
+from src.filters import kalman_filter
 class Agent:
     def __init__(self,
                  pos_x: float,
@@ -17,6 +17,11 @@ class Agent:
         self.pos_y = pos_y
         self.theta = theta
 
+        # initial belief with known correspondence
+        self.bel_pos_x = pos_x
+        self.bel_pos_y = pos_y
+        self.bel_theta = theta
+
         # Constant Components
         self.radius = radius
 
@@ -27,10 +32,13 @@ class Agent:
         self.sensor_manager = None
         self.guided_line = None
 
+        self.bel_cov = None
+
     def standard_move(self,
                       vl: float,
                       vr: float,
-                      delta_t: float
+                      delta_t: float,
+                      detected_landmarks: list
                       ):
         """
         Execute standard move
@@ -41,12 +49,14 @@ class Agent:
                 # update positions
                 self.pos_x += vl * delta_t * np.cos(self.theta)
                 self.pos_y += vl * delta_t * np.sin(self.theta)
+                v = vl
 
         else:
             # get angular velocity
             w = (vr - vl) / (2 * self.radius)
             # get the ICC radius
             R = self.radius * (vr + vl) / (vr - vl)
+            v = R*w
             # ICC coordinates
             ICC_x = self.pos_x - R * np.sin(self.theta)
             ICC_y = self.pos_y + R * np.cos(self.theta)
@@ -67,11 +77,15 @@ class Agent:
             self.pos_y = new_pos[1]
             self.theta = new_pos[2]
 
+            # update belief
+            self.apply_filter(v, w, delta_t, detected_landmarks)
+
     def collision_move(self,
                        vl: float,
                        vr: float,
                        delta_t: float,
-                       collision_angles: list
+                       collision_angles: list,
+                       detected_landmarks: list
                        ):
         """
         Execute collision move
@@ -109,6 +123,9 @@ class Agent:
             self.pos_x += v * np.cos(beta) * delta_t
             self.pos_y += v * np.sin(beta) * delta_t
             self.theta += w * delta_t
+
+            # update belief
+            self.apply_filter(v, w, delta_t, detected_landmarks)
 
             # Guided Line
             self.guided_line = (
@@ -167,15 +184,64 @@ class Agent:
         self.line = pygame.draw.line(surface, (0, 0, 0), (self.pos_x, self.pos_y), (x_end, y_end),
                                      width=int(self.radius / 10))
 
-        # Draw
+        # Draw sensor lines
         self.sensor_manager.draw(surface)
 
         # Guided Line near the walls
-        if self.guided_line:
-            pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
-                             (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
-            self.guided_line = None
+        # if self.guided_line:
+        #     pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
+        #                      (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
+        #     self.guided_line = None
+        if len(self.sensor_manager.detected_landmarks) > 0:
+            for landmark in self.sensor_manager.detected_landmarks:
+                # draw line from agent to the landmark
+                pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark[0], landmark[1]), width=3)
 
+        #TODO: draw the belief covariance ellipse
+        
+    def set_current_belief(self, detected_landmarks: list):
+        """
+        Get the belief of the agent from detected landmarks
+        """
+        # if there are less than two landmarks detected, then simply assume the last belief
+        if len(detected_landmarks) >= 2:
+            # get the last 2 landmarks
+            detected_landmarks = detected_landmarks[-2:]
+            beacon_1 = detected_landmarks[0]
+            beacon_2 = detected_landmarks[1]
+            # get the two points of intersection of the two circles
+            pos_points = circle_intersectoins([beacon_1[0], beacon_1[1], beacon_1[3]], [beacon_2[0], beacon_2[1], beacon_2[3]])
+            delta_min = np.inf
+            for x,y in pos_points:
+                delta = abs((atan2(beacon_1[0] - x, beacon_1[1]- y) -  beacon_1[4]) 
+                    - (atan2(beacon_2[0] - x, beacon_2[1] - y) - beacon_2[4]))
+                if delta < delta_min:
+                    delta_min = delta
+                    self.bel_pos_x = int(x)
+                    self.bel_pos_y = int(y)
+            self.bel_theta = round(atan2(beacon_1[0] - self.bel_pos_x, beacon_1[1] - self.bel_pos_y) -  beacon_1[4],1)
+
+    def apply_filter(self, v: float, w: float, delta_t: float, detected_landmarks: list):
+        """
+        Apply Kalman Filter
+        """
+        # initalize mean as as the initial belief
+        mean = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
+        cov = np.diag(np.random.rand(len(mean)))
+        controls = np.array([v, w])
+        # set the latest measurements by getting the current belief
+        self.set_current_belief(detected_landmarks)
+        measurements = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
+        
+        mean, cov = kalman_filter(mean, cov, controls, measurements, delta_t)
+        # update the belief
+        self.bel_pos_x = mean[0]
+        self.bel_pos_y = mean[1]
+        self.bel_theta = mean[2]
+        self.bel_cov = cov
+
+            
+        
 # if __name__ == "__main__":
 #     # define agent
 #     pos_x = 200

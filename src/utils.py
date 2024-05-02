@@ -1,5 +1,6 @@
 import numpy as np
 from src.environment import Line
+import sympy as sp
 
 
 def euclidean_distance(x1, y1, x2, y2):
@@ -16,7 +17,7 @@ def get_collision_point_line(old_points: list,
                              agent: dict
                              ):
     """
-    Get the collision point of the agent with the environment
+    Get the collision point of the agent with the environment, collision detetcion for big time steps with trace lines
     """
     assert len(old_points) == len(new_points)
 
@@ -230,3 +231,88 @@ def get_position_line_intersection(a1, a2, b1, b2):
                 min(x3, x4) <= px <= max(x3, x4) and min(y3, y4) <= py <= max(y3, y4):
             return (px, py)
         return None
+
+def atan2(x, y):
+    """Extends the inverse tangent function to all four quadrants."""
+    if x == 0:
+        if y == 0:
+            return 0
+        else:
+            return np.sign(y) * np.pi / 2
+    elif x > 0:
+        return np.arctan(float(y / x))
+    else:
+        return np.sign(y) * (np.pi - np.arctan(abs(float(y / x))))
+
+def circle_intersectoins(circle_1_points, circle_2_points):
+    """
+    Calculate the intersection points of two circles.
+
+    Parameters:
+    circle_1_points (tuple): The center coordinates (x, y) and radius of the first circle.
+    circle_2_points (tuple): The center coordinates (x, y) and radius of the second circle.
+    
+    Returns:
+    list: A list of tuples representing the coordinates of the intersection points.
+    """
+    # circulate to get the point of intersection
+    c1 = sp.Circle((circle_1_points[0], circle_1_points[1]), circle_1_points[2])
+    c2 = sp.Circle((circle_2_points[0], circle_2_points[1]), circle_2_points[2])
+    intersection_points = c1.intersection(c2)
+    # get the coordinates of the intersection points
+    intersection_points = [(point.x, point.y) for point in [point.evalf() for point in intersection_points]]
+    return intersection_points
+
+# check if a point lies on a line defined by two points using sympy
+def point_on_line(point, line):
+    """
+    Check if a point lies on a line defined by two points.
+
+    Parameters:
+    point (tuple): The coordinates of the point.
+    line (tuple): (Ex: ((0,0), (2,2)))The coordinates of the two points defining the line.
+    
+    Returns:
+    bool: True if the point lies on the line, False otherwise.
+    """
+    # create the line using the two points
+    line = sp.Line(line[0], line[1])
+    # create the point using the coordinates
+    point = sp.Point(point)
+    # check if the point lies on the line
+    return line.contains(point)
+
+# check if a circle intersects a line defined by two points
+# def circle_line_intersection(circle, line):
+#     """
+#     Check if a circle intersects a line defined by two points.
+
+#     Parameters:
+#     circle (tuple): The center coordinates (x, y) and radius of the circle.
+#     line (tuple): The coordinates of the two points defining the line.
+    
+#     Returns:
+#     bool: True if the circle intersects the line, False otherwise.
+#     """
+#     # create the circle using the center and radius
+#     circle = sp.Circle((circle[0], circle[1]), circle[2])
+#     # create the line using the two points
+#     line = sp.Line(line[0], line[1])
+#     # check if the circle intersects the line
+#     return circle.intersect(line) != [] 
+# check if a circle intersects a line defined by two points the most optimised way without using sympy
+def circle_line_intersection(circle, line):
+    """
+    Check if a circle intersects a line defined by two points.
+
+    Parameters:
+    circle (tuple): The center coordinates (x, y) and radius of the circle.
+    line (tuple): The coordinates of the two points defining the line.
+    
+    Returns:
+    bool: True if the circle intersects the line, False otherwise.
+    """
+    # calculate the distance from the center of the circle to the line
+    distance = point_line_distance(circle[0], circle[1], line[0][0], line[0][1], line[1][0], line[1][1])
+    # return True if the distance is less than the radius of the circle
+    return distance <= circle[2]

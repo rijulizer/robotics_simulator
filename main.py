@@ -5,7 +5,8 @@ from src.environment import Environment
 from src.engine import simulate
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+logging.basicConfig(level=logging.ERROR, format='%(levelname)s - %(message)s')
 
 
 def run_simulation(
@@ -27,7 +28,8 @@ def run_simulation(
     environment_surface.fill((255, 255, 255))
     # Initialize and draw environment
     env = Environment(environment_surface)
-
+    # put landmarks on the environment
+    env.put_landmarks(environment_surface)
     # define agent
     pos_x = 200
     pos_y = 200
@@ -35,7 +37,7 @@ def run_simulation(
     theta = 0
 
     number_sensors = 12
-    sensor_length = 50
+    sensor_length = 150
 
     agent = Agent(pos_x, pos_y, radius, theta)
 
@@ -43,7 +45,14 @@ def run_simulation(
                                    number_sensors,
                                    sensor_length,
                                    env.line_list)
+    # convert radians to degrees
+    theta = theta * 180 / 3.14
+    # attach sensors to agent
     agent.set_sensor(sensor_manager)
+    # detect landmarks
+    # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
+    # win.blit(environment_surface, (0, 0))
+    # logging.debug(f"Detected Landmarks: {detected_landmarks}")
 
     # Define variables
     delta_t_max = delta_t
@@ -57,7 +66,7 @@ def run_simulation(
 
     sim_run = True
     while sim_run:
-        pygame.time.delay(50)
+        pygame.time.delay(25)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sim_run = False
@@ -75,8 +84,9 @@ def run_simulation(
                 elif event.key == pygame.K_l:
                     vr -= 1  # delta_t
                     vr = max(vr, vr_min)
-
-        success = simulate(agent, env.line_list, vr, vl, delta_t_curr)
+        
+        # core logic starts here
+        success = simulate(agent, env.line_list, vr, vl, delta_t_curr, env.landmarks)
 
         if not success:
             delta_t_curr -= 0.1
@@ -97,9 +107,23 @@ def run_simulation(
         win.blit(text_vr, (50, 40))
         win.blit(text_delta_t, (50, 70))
 
+        # get the agents belief
+        # agent.get_belief(detected_landmarks)
+        # logging.debug(f"Actual position: {agent.pos_x, agent.pos_y, agent.theta}")
+        # logging.debug(f"Belief: {agent.bel_pos_x, agent.bel_pos_y, agent.bel_theta}")
+
         # Agent trajectory
         pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
+        pygame.draw.circle(environment_surface, (240, 90, 90), (agent.bel_pos_x, agent.bel_pos_y), 2)
+        # numpy radian to degre
 
+
+        # detect landmarks
+        # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
+        # for i in detected_landmarks:
+        #     landmark_phi = font.render(f"{i[0], i[1], round(i[4]* 180 / 3.14,2)}", True, (0, 0, 0))
+        #     win.blit(landmark_phi, (i[0], i[1]))
+        
         agent.draw(win)  # Draw agent components
 
         # Refresh the window
