@@ -238,8 +238,4 @@ class SensorManager:
             self.detected_landmarks = sorted(self.detected_landmarks, key=lambda x: x["time_step"])
             self.detected_landmarks.pop(0)
 
-
-        # print landmark with signature
-        for i in self.detected_landmarks:
-            print(f"Detected Landmark: {i['x'], i['y'], i['signature'], round(i['range'],2), round(i['bearing']* 180 / 3.14,2)}")
         return self.detected_landmarks
