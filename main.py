@@ -3,6 +3,7 @@ from src.agent.agent import Agent
 from src.agent.sensor import SensorManager
 from src.environment import Environment
 from src.engine import simulate
+from src.utils import draw_belief_ellipse
 import logging
 
 # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
@@ -95,7 +96,6 @@ def run_simulation(
                            env.landmarks,
                            time_step
                            )
-        time_step += 1
 
         if not success:
             delta_t_curr -= 0.1
@@ -124,19 +124,22 @@ def run_simulation(
         # Agent trajectory
         pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
         pygame.draw.circle(environment_surface, (240, 90, 90), (agent.bel_pos_x, agent.bel_pos_y), 2)
-        # numpy radian to degre
-
+        # print the belief cov matrix in every 100th iteration
+        if time_step % 100 == 0:
+            draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale=100)
 
         # detect landmarks
         # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
         # for i in detected_landmarks:
         #     landmark_phi = font.render(f"{i[0], i[1], round(i[4]* 180 / 3.14,2)}", True, (0, 0, 0))
         #     win.blit(landmark_phi, (i[0], i[1]))
-        
+        logging.debug(f"agent_bel_cov: {agent.bel_cov}")
         agent.draw(win)  # Draw agent components
 
+        time_step += 1
         # Refresh the window
         pygame.display.update()
+
     pygame.quit()
 
 

@@ -46,20 +46,19 @@ class Agent:
         # Default values
         v = 0
         w = 0
-
-        # when vl=vr=v
         if vl == vr:
             if vl != 0:
                 # update positions
                 self.pos_x += vl * delta_t * np.cos(self.theta)
                 self.pos_y += vl * delta_t * np.sin(self.theta)
                 v = vl
+
         else:
             # get angular velocity
             w = (vr - vl) / (2 * self.radius)
             # get the ICC radius
             R = self.radius * (vr + vl) / (vr - vl)
-            v = R*w
+            v = R * w
             # ICC coordinates
             ICC_x = self.pos_x - R * np.sin(self.theta)
             ICC_y = self.pos_y + R * np.cos(self.theta)
@@ -103,9 +102,7 @@ class Agent:
         # if collision happens with multiple walls it does not move only rotation is allowed
         if len(collision_angles) > 1:
             # get angular velocity
-
             w = (vr - vl) / (2 * self.radius)
-
             self.theta += w * delta_t
         else:
             # for single collision
@@ -213,8 +210,6 @@ class Agent:
             for landmark in self.sensor_manager.detected_landmarks:
                 # draw line from agent to the landmark
                 pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark["x"], landmark["y"]), width=3)
-
-        #TODO: draw the belief covariance ellipse
         
     def set_current_belief(self, detected_landmarks: list):
         """

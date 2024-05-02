@@ -1,0 +1,9 @@
+# experiments
+
+1. Number of landmarks (Dima)
+    1. Demonstrate what happens if 3 landmarks are visible to robot
+    2. Demonstrate what happens if no landmarks are visible to robot
+
+2. Modifying the filter (Tauseef)
+    1. Experiment with noise estimates (see Kalman Filter Q and R)
+    2. Experiment with quality of sensors (noise, systematic errors) - adding noise to belief

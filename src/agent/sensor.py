@@ -32,6 +32,7 @@ class SensorLine:
         self.f_theta = theta + self.robot_theta
         self.sensor_length = sensor_length
         self.body = None
+        self.intersection_pt = []
 
     def get_intersection_pt(self,
                             robot_pt: list,
@@ -53,8 +54,8 @@ class SensorLine:
             [robot_pt[0] + self.radius * np.cos(self.f_theta), robot_pt[1] + self.radius * np.sin(self.f_theta)])
         sensor_line_pt2 = np.array([robot_pt[0] + (self.radius + self.sensor_length) * np.cos(self.f_theta),
                                     robot_pt[1] + (self.radius + self.sensor_length) * np.sin(self.f_theta)])
-        intersection_pt = seg_intersect(sensor_line_pt1, sensor_line_pt2, line_pt1, line_pt2)
-        dist = np.sqrt((sensor_line_pt1[0] - intersection_pt[0]) ** 2 + (sensor_line_pt1[1] - intersection_pt[1]) ** 2)
+        self.intersection_pt = seg_intersect(sensor_line_pt1, sensor_line_pt2, line_pt1, line_pt2)
+        dist = np.sqrt((sensor_line_pt1[0] - self.intersection_pt[0]) ** 2 + (sensor_line_pt1[1] - self.intersection_pt[1]) ** 2)
         dist = max(min(dist, self.sensor_length), 0)
         dist = np.nan_to_num(dist, False, nan=0.0)
         return dist
@@ -64,6 +65,9 @@ class SensorLine:
 
         x1 = self.pos_x + self.radius * np.cos(self.f_theta)
         y1 = self.pos_y + self.radius * np.sin(self.f_theta)
+        # if len(self.intersection_pt) > 0:
+        #     x2, y2 = self.intersection_pt
+        # else:
         x2 = self.pos_x + (self.radius + self.sensor_length) * np.cos(self.f_theta)
         y2 = self.pos_y + (self.radius + self.sensor_length) * np.sin(self.f_theta)
         return x1, y1, x2, y2

@@ -1,7 +1,7 @@
 import numpy as np
 from src.environment import Line
 import sympy as sp
-
+import pygame
 
 def euclidean_distance(x1, y1, x2, y2):
     """
@@ -282,25 +282,6 @@ def point_on_line(point, line):
     # check if the point lies on the line
     return line.contains(point)
 
-# check if a circle intersects a line defined by two points
-# def circle_line_intersection(circle, line):
-#     """
-#     Check if a circle intersects a line defined by two points.
-
-#     Parameters:
-#     circle (tuple): The center coordinates (x, y) and radius of the circle.
-#     line (tuple): The coordinates of the two points defining the line.
-    
-#     Returns:
-#     bool: True if the circle intersects the line, False otherwise.
-#     """
-#     # create the circle using the center and radius
-#     circle = sp.Circle((circle[0], circle[1]), circle[2])
-#     # create the line using the two points
-#     line = sp.Line(line[0], line[1])
-#     # check if the circle intersects the line
-#     return circle.intersect(line) != [] 
-# check if a circle intersects a line defined by two points the most optimised way without using sympy
 def circle_line_intersection(circle, line):
     """
     Check if a circle intersects a line defined by two points.
@@ -316,3 +297,16 @@ def circle_line_intersection(circle, line):
     distance = point_line_distance(circle[0], circle[1], line[0][0], line[0][1], line[1][0], line[1][1])
     # return True if the distance is less than the radius of the circle
     return distance <= circle[2]
+
+# agent belief ellipse
+def draw_belief_ellipse(surface, bel_cov, bel_pos_x, bel_pos_y, scale):
+    # draw the belief covariance ellipse
+    if bel_cov is not None:
+        cov = bel_cov[:2, :2] # asusmption always a diagonal matrix
+        eigvals, _ = np.linalg.eig(cov)
+        scale = 50 # arbitary scaling factor
+        # Find major and minor axes lengths
+        major_axis = scale * np.sqrt(eigvals[0])
+        minor_axis = scale * np.sqrt(eigvals[1])
+        # angle = np.degrees(np.arctan2(eigvecs[1, 0], eigvecs[0, 0]))
+        ellipse = pygame.draw.ellipse(surface, (240, 90, 90), (bel_pos_x, bel_pos_y, major_axis, minor_axis), 5)
