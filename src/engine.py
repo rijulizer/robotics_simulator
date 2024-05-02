@@ -4,11 +4,12 @@ from src.agent.agent import Agent
 from src.utils import *
 
 def simulate(agent: Agent,
-             object_list: list,
              vr: float,
              vl: float,
              delta_t_curr: float,
+             object_list: list,
              env_landmarks: list,
+             time_step: int
              ) -> bool:
 
     # Current agent position
@@ -18,7 +19,7 @@ def simulate(agent: Agent,
     curr_points_circle = agent.get_points_circle(8)
 
     # detect landmarks
-    detected_landmarks = agent.sensor_manager.scan_landmarks(env_landmarks)
+    detected_landmarks = agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
 
     # Execute the standard move
     agent.standard_move(vr, vl, delta_t_curr, detected_landmarks)
@@ -44,7 +45,11 @@ def simulate(agent: Agent,
             agent.set_agent_stats({
                                     "pos_x": new_x,
                                     "pos_y": new_y,
-                                    "theta": agent.theta
+                                    "theta": agent.theta,
+                                    "bel_pos_x": agent.bel_pos_x,
+                                    "bel_pos_y": agent.bel_pos_y,
+                                    "bel_theta": agent.bel_theta,
+                                    "bel_cov": agent.bel_cov
                                     })
 
     # Get next circle points of the agent
@@ -74,7 +79,11 @@ def simulate(agent: Agent,
             agent.set_agent_stats({
                                     "pos_x": new_x,
                                     "pos_y": new_y,
-                                    "theta": agent.theta
+                                    "theta": agent.theta,
+                                    "bel_pos_x": agent.bel_pos_x,
+                                    "bel_pos_y": agent.bel_pos_y,
+                                    "bel_theta": agent.bel_theta,
+                                    "bel_cov": agent.bel_cov
                                     })
         else:
             # Reset the agent position

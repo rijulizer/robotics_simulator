@@ -65,6 +65,7 @@ def run_simulation(
     vr_min = - vr_max
 
     sim_run = True
+    time_step = 0
     while sim_run:
         pygame.time.delay(25)
         for event in pygame.event.get():
@@ -86,7 +87,15 @@ def run_simulation(
                     vr = max(vr, vr_min)
         
         # core logic starts here
-        success = simulate(agent, env.line_list, vr, vl, delta_t_curr, env.landmarks)
+        success = simulate(agent,
+                           vr,
+                           vl,
+                           delta_t_curr,
+                           env.line_list,
+                           env.landmarks,
+                           time_step
+                           )
+        time_step += 1
 
         if not success:
             delta_t_curr -= 0.1
