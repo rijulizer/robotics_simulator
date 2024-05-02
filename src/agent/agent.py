@@ -43,9 +43,9 @@ class Agent:
         """
         Execute standard move
         """
-        # when vl=vr=v
+        # Default values
         v = 0
-        w = 0 
+        w = 0
         if vl == vr:
             if vl != 0:
                 # update positions
@@ -95,6 +95,9 @@ class Agent:
         Assumption: suspend any rotational motion, the agent only glides sticking to the wall
             i,e. Only x-y changes theta remains same
         """
+        # Default values
+        v = 0
+        w = 0
 
         # if collision happens with multiple walls it does not move only rotation is allowed
         if len(collision_angles) > 1:
@@ -126,12 +129,12 @@ class Agent:
             self.pos_y += v * np.sin(beta) * delta_t
             self.theta += w * delta_t
 
-            # update belief
-            self.apply_filter(v, w, delta_t, detected_landmarks)
-
             # Guided Line
             self.guided_line = (
                 self.pos_x + v * np.cos(beta) * delta_t * 50, self.pos_y + v * np.sin(beta) * delta_t * 50)
+
+        # update belief
+        self.apply_filter(v, w, delta_t, detected_landmarks)
 
     def get_agent_stats(self):
         """
@@ -142,6 +145,10 @@ class Agent:
             "pos_y": self.pos_y,
             "theta": self.theta,
             "radius": self.radius,
+            "bel_pos_x": self.bel_pos_x,
+            "bel_pos_y": self.bel_pos_y,
+            "bel_theta": self.bel_theta,
+            "bel_cov": self.bel_cov
         }
 
     def set_agent_stats(self, stats: dict):
@@ -151,6 +158,11 @@ class Agent:
         self.pos_x = stats['pos_x']
         self.pos_y = stats['pos_y']
         self.theta = stats['theta']
+        self.bel_pos_x = stats['bel_pos_x']
+        self.bel_pos_y = stats['bel_pos_y']
+        self.bel_theta = stats['bel_theta']
+        self.bel_cov = stats['bel_cov']
+
 
     def get_points_circle(self, num: int):
         """"
@@ -197,7 +209,8 @@ class Agent:
         if len(self.sensor_manager.detected_landmarks) > 0:
             for landmark in self.sensor_manager.detected_landmarks:
                 # draw line from agent to the landmark
-                pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark[0], landmark[1]), width=3)
+                pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark["x"], landmark["y"]), width=3)
+        
     def set_current_belief(self, detected_landmarks: list):
         """
         Get the belief of the agent from detected landmarks
@@ -209,22 +222,24 @@ class Agent:
             beacon_1 = detected_landmarks[0]
             beacon_2 = detected_landmarks[1]
             # get the two points of intersection of the two circles
-            pos_points = circle_intersectoins([beacon_1[0], beacon_1[1], beacon_1[3]], [beacon_2[0], beacon_2[1], beacon_2[3]])
+            pos_points = circle_intersectoins([beacon_1["x"], beacon_1["y"], beacon_1["range"]],
+                                              [beacon_2["x"], beacon_2["y"], beacon_2["range"]])
             delta_min = np.inf
             for x,y in pos_points:
-                delta = abs((atan2(beacon_1[0] - x, beacon_1[1]- y) -  beacon_1[4]) 
-                    - (atan2(beacon_2[0] - x, beacon_2[1] - y) - beacon_2[4]))
+                delta = abs((atan2(beacon_1["x"] - x, beacon_1["y"] - y) - beacon_1["bearing"]) -
+                            (atan2(beacon_2["x"] - x, beacon_2["y"] - y) - beacon_2["bearing"]))
                 if delta < delta_min:
                     delta_min = delta
                     self.bel_pos_x = int(x)
                     self.bel_pos_y = int(y)
-            self.bel_theta = round(atan2(beacon_1[0] - self.bel_pos_x, beacon_1[1] - self.bel_pos_y) -  beacon_1[4],1)
+            self.bel_theta = round(atan2(beacon_1["x"] - self.bel_pos_x, beacon_1["y"] - self.bel_pos_y) -
+                                   beacon_1["bearing"], 1)
 
     def apply_filter(self, v: float, w: float, delta_t: float, detected_landmarks: list):
         """
         Apply Kalman Filter
         """
-        # initalize mean as as the initial belief
+        # initalize mean as the initial belief
         mean = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
         cov = np.diag(np.random.rand(len(mean)))
         controls = np.array([v, w])

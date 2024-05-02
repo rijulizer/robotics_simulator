@@ -17,6 +17,7 @@ class Line:
 
 class Environment:
     def __init__(self, win):
+        self.landmarks = None
         self.line_list = []
         # define environment
         border_x = 100
@@ -72,7 +73,11 @@ class Environment:
         for i, point in enumerate(self.points):
             pygame.draw.circle(win, (255, 0, 0), (point[0], point[1]), 7)
             # add signatures to the landmarks
-            self.landmarks.append([point[0], point[1], i])
+            self.landmarks.append({
+                "signature": i,
+                "x": point[0],
+                "y": point[1]
+            })
         
         
         
