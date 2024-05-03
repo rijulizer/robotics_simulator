@@ -34,7 +34,7 @@ class Agent:
         self.sensor_manager = None
         self.guided_line = None
 
-        self.bel_cov = None
+        self.bel_cov = np.diag(np.random.rand(3))
 
     def standard_move(self,
                       vl: float,
@@ -202,10 +202,11 @@ class Agent:
                 pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark["x"], landmark["y"]),
                                  width=3)
 
-    def compute_current_belief(self):
+    def get_sensor_measurement(self):
         """
         Get the belief of the agent from detected landmarks
         """
+        measurement = np.zeros(3)
         # if there are less than two landmarks detected, then simply assume the last belief
         if len(self.sensor_manager.detected_landmarks) >= 2:
             # get the last 2 landmarks
@@ -221,10 +222,11 @@ class Agent:
                             (atan2(beacon_2["x"] - x, beacon_2["y"] - y) - beacon_2["bearing"]))
                 if delta < delta_min:
                     delta_min = delta
-                    self.bel_pos_x = int(x)
-                    self.bel_pos_y = int(y)
-            self.bel_theta = round(atan2(beacon_1["x"] - self.bel_pos_x, beacon_1["y"] - self.bel_pos_y) -
+                    measurement[0] = round(x,3)
+                    measurement[1] = round(y,3)
+                    measurement[2] = round(atan2(beacon_1["x"] - measurement[0], beacon_1["y"] - measurement[1]) -
                                    beacon_1["bearing"], 1)
+        return measurement
 
     def apply_filter(self, v: float, w: float, delta_t: float):
         """
@@ -232,14 +234,12 @@ class Agent:
         """
         # Initialize mean as the initial belief
         mean = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
-        cov = np.diag(np.random.rand(len(mean)))
         controls = np.array([v, w])
 
         # Set the latest measurements by getting the current belief
-        self.compute_current_belief()
-        measurements = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
+        measurements = self.get_sensor_measurement()
 
-        mean, cov = kalman_filter(mean, cov, controls, measurements, delta_t)
+        mean, cov = kalman_filter(mean, self.bel_cov, controls, measurements, delta_t)
 
         # Update the belief
         self.bel_pos_x = mean[0]
