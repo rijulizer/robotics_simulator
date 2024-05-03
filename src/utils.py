@@ -303,10 +303,14 @@ def draw_belief_ellipse(surface, bel_cov, bel_pos_x, bel_pos_y, scale):
     # draw the belief covariance ellipse
     if bel_cov is not None:
         cov = bel_cov[:2, :2] # asusmption always a diagonal matrix
-        eigvals, _ = np.linalg.eig(cov)
+        eigvals, eigvecs = np.linalg.eig(cov)
         scale = 50 # arbitary scaling factor
         # Find major and minor axes lengths
         major_axis = scale * np.sqrt(eigvals[0])
         minor_axis = scale * np.sqrt(eigvals[1])
-        # angle = np.degrees(np.arctan2(eigvecs[1, 0], eigvecs[0, 0]))
-        ellipse = pygame.draw.ellipse(surface, (240, 90, 90), (bel_pos_x, bel_pos_y, major_axis, minor_axis), 5)
+        angle = np.degrees(np.arctan2(eigvecs[1, 0], eigvecs[0, 0]))
+        ellipse_rect = pygame.Rect((0,0,major_axis,minor_axis))
+        ellipse_surface = pygame.Surface(ellipse_rect.size,pygame.SRCALPHA)
+        pygame.draw.ellipse(ellipse_surface, (240, 90, 90), (0, 0, major_axis, minor_axis), 5)
+        ellipse_surface = pygame.transform.rotate(ellipse_surface, angle)
+        surface.blit(ellipse_surface, ellipse_surface.get_rect(center = (bel_pos_x,bel_pos_y)))
