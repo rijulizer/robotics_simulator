@@ -4,14 +4,17 @@ from src.agent.sensor import SensorManager
 from src.environment import Environment
 from src.engine import simulate
 from src.utils import draw_belief_ellipse
+from src.graphGUI.graphs import GraphGUI
 import logging
+
 
 # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 logging.basicConfig(level=logging.ERROR, format='%(levelname)s - %(message)s')
 
 
 def run_simulation(
-        delta_t: float
+        delta_t: float,
+        graphGUI: GraphGUI
 ):
     # initialize
     pygame.init()
@@ -66,41 +69,49 @@ def run_simulation(
     vr_min = - vr_max
 
     sim_run = True
+    freeze = False
     time_step = 0
     while sim_run:
         pygame.time.delay(25)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sim_run = False
             # read movements
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w:
+                if event.key == pygame.K_w and not freeze:
                     vl += 1  # delta_t
                     vl = min(vl, vl_max)
-                elif event.key == pygame.K_s:
+                elif event.key == pygame.K_s and not freeze:
                     vl -= 1  # delta_t
                     vl = max(vl, vl_min)
-                elif event.key == pygame.K_o:
+                elif event.key == pygame.K_o and not freeze:
                     vr += 1  # delta_t
                     vr = min(vr, vr_max)
-                elif event.key == pygame.K_l:
+                elif event.key == pygame.K_l and not freeze:
                     vr -= 1  # delta_t
                     vr = max(vr, vr_min)
-        
-        # core logic starts here
-        success = simulate(agent,
-                           vr,
-                           vl,
-                           delta_t_curr,
-                           env.line_list,
-                           env.landmarks,
-                           time_step
-                           )
+                elif event.key == pygame.K_SPACE:
+                    freeze = not freeze
 
-        if not success:
-            delta_t_curr -= 0.1
-        else:
-            delta_t_curr = delta_t_max
+        # core logic starts here
+        if not freeze:
+            success = simulate(agent,
+                               vr,
+                               vl,
+                               delta_t_curr,
+                               env.line_list,
+                               env.landmarks,
+                               time_step
+                               )
+
+            if not success:
+                delta_t_curr -= 0.1
+            else:
+                delta_t_curr = delta_t_max
+
+            # update the graph
+            graphGUI.update_plot({"vl": vl, "vr": vr})
 
         # Fill the window with white
         win.fill((255, 255, 255))
@@ -112,9 +123,11 @@ def run_simulation(
         text_vl = font.render(f"v_l: {vl}", True, (0, 0, 0))
         text_vr = font.render(f"v_r: {vr}", True, (0, 0, 0))
         text_delta_t = font.render(f"delta_t: {delta_t}", True, (0, 0, 0))
+        text_freeze = font.render(f"freeze: {freeze}", True, (0, 0, 0))
         win.blit(text_vl, (50, 10))
         win.blit(text_vr, (50, 40))
         win.blit(text_delta_t, (50, 70))
+        win.blit(text_freeze, (200, 10))
 
         # get the agents belief
         # agent.get_belief(detected_landmarks)
@@ -144,4 +157,4 @@ def run_simulation(
 
 
 if __name__ == "__main__":
-    run_simulation(delta_t=1)
+    run_simulation(delta_t=1, graphGUI=GraphGUI())

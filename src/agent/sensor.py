@@ -55,7 +55,8 @@ class SensorLine:
         sensor_line_pt2 = np.array([robot_pt[0] + (self.radius + self.sensor_length) * np.cos(self.f_theta),
                                     robot_pt[1] + (self.radius + self.sensor_length) * np.sin(self.f_theta)])
         self.intersection_pt = seg_intersect(sensor_line_pt1, sensor_line_pt2, line_pt1, line_pt2)
-        dist = np.sqrt((sensor_line_pt1[0] - self.intersection_pt[0]) ** 2 + (sensor_line_pt1[1] - self.intersection_pt[1]) ** 2)
+        dist = np.sqrt(
+            (sensor_line_pt1[0] - self.intersection_pt[0]) ** 2 + (sensor_line_pt1[1] - self.intersection_pt[1]) ** 2)
         dist = max(min(dist, self.sensor_length), 0)
         dist = np.nan_to_num(dist, False, nan=0.0)
         return dist
@@ -190,8 +191,8 @@ class SensorManager:
         """Scan the landmarks in the environment and get the range and bearing information
         
         """
-        # iterate through all sensors and lands marks and check if the landmark point lies on the sensor line
         detected_landmarks = []
+        # iterate through all sensors and lands marks and check if the landmark point lies on the sensor line
         for landmark in landmarks:
             range_i = euclidean_distance(self.pos_x, self.pos_y, landmark["x"], landmark["y"])
 
@@ -214,14 +215,13 @@ class SensorManager:
             #             break
             # case -2
             if range_i <= self.sensor_length + self.radius:
-
                 bear_i = atan2(landmark["x"] - self.pos_x, landmark["y"] - self.pos_y) - self.theta
                 #TODO: Bearing can also be calculated from sensor angle of the particular sensor
                 # append the range and bear information along with the cordinates and signature of the beacon
 
-                time = next((i["time_step"] for i in self.detected_landmarks if i["signature"] == landmark["signature"]),
-                            time_step)
-
+                time = next(
+                    (i["time_step"] for i in self.detected_landmarks if i["signature"] == landmark["signature"]),
+                    time_step)
 
                 detected_landmarks.append({
                     "x": landmark["x"],
@@ -232,10 +232,7 @@ class SensorManager:
                     "time_step": time
                 })
 
-        self.detected_landmarks = detected_landmarks
-        if len(self.detected_landmarks) > 2:
-            # remove the oldest landmark based on time
-            self.detected_landmarks = sorted(self.detected_landmarks, key=lambda x: x["time_step"])
-            self.detected_landmarks.pop(0)
+        self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
+        print(self.detected_landmarks)
 
         return self.detected_landmarks
