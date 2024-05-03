@@ -3,6 +3,7 @@ import logging
 from src.agent.agent import Agent
 from src.utils import *
 
+
 def simulate(agent: Agent,
              vr: float,
              vl: float,
@@ -11,7 +12,6 @@ def simulate(agent: Agent,
              env_landmarks: list,
              time_step: int
              ) -> bool:
-
     # Current agent position
     curr_pos = agent.get_agent_stats()
 
@@ -43,14 +43,14 @@ def simulate(agent: Agent,
             new_x, new_y = push_back_from_collision(agent.pos_x, agent.pos_y, agent.radius,
                                                     line.start_x, line.start_y, line.end_x, line.end_y)
             agent.set_agent_stats({
-                                    "pos_x": new_x,
-                                    "pos_y": new_y,
-                                    "theta": agent.theta,
-                                    "bel_pos_x": agent.bel_pos_x,
-                                    "bel_pos_y": agent.bel_pos_y,
-                                    "bel_theta": agent.bel_theta,
-                                    "bel_cov": agent.bel_cov
-                                    })
+                "pos_x": new_x,
+                "pos_y": new_y,
+                "theta": agent.theta,
+                "bel_pos_x": agent.bel_pos_x,
+                "bel_pos_y": agent.bel_pos_y,
+                "bel_theta": agent.bel_theta,
+                "bel_cov": agent.bel_cov
+            })
 
     # Get next circle points of the agent
     next_points_circle = agent.get_points_circle(8)
@@ -77,14 +77,14 @@ def simulate(agent: Agent,
         # if intersect_point is not finite (meaning not intersection), then move to new position
         if not np.isfinite(intersect_point).all():
             agent.set_agent_stats({
-                                    "pos_x": new_x,
-                                    "pos_y": new_y,
-                                    "theta": agent.theta,
-                                    "bel_pos_x": agent.bel_pos_x,
-                                    "bel_pos_y": agent.bel_pos_y,
-                                    "bel_theta": agent.bel_theta,
-                                    "bel_cov": agent.bel_cov
-                                    })
+                "pos_x": new_x,
+                "pos_y": new_y,
+                "theta": agent.theta,
+                "bel_pos_x": agent.bel_pos_x,
+                "bel_pos_y": agent.bel_pos_y,
+                "bel_theta": agent.bel_theta,
+                "bel_cov": agent.bel_cov
+            })
         else:
             # Reset the agent position
             agent.set_agent_stats(curr_pos)
