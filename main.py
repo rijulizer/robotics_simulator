@@ -111,7 +111,8 @@ def run_simulation(
                 delta_t_curr = delta_t_max
 
             # update the graph
-            graphGUI.update_plot({"vl": vl, "vr": vr})
+            if graphGUI:
+                graphGUI.update_plot({"vl": vl, "vr": vr})
 
         # Fill the window with white
         win.fill((255, 255, 255))
@@ -137,6 +138,7 @@ def run_simulation(
         # Agent trajectory
         pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
         pygame.draw.circle(environment_surface, (240, 90, 90), (agent.bel_pos_x, agent.bel_pos_y), 2)
+        pygame.draw.circle(environment_surface, (0, 0, 70), (agent.est_bel_pos_x, agent.est_bel_pos_y), 1)
         # print the belief cov matrix in every 100th iteration
         if time_step % 100 == 0:
             draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale=100)
@@ -158,3 +160,4 @@ def run_simulation(
 
 if __name__ == "__main__":
     run_simulation(delta_t=1, graphGUI=GraphGUI())
+    #run_simulation(delta_t=1)

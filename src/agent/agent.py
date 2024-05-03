@@ -23,6 +23,8 @@ class Agent:
         self.bel_pos_x = pos_x
         self.bel_pos_y = pos_y
         self.bel_theta = theta
+        self.est_bel_pos_x = pos_x
+        self.est_bel_pos_y = pos_y
 
         # Constant Components
         self.radius = radius
@@ -216,7 +218,7 @@ class Agent:
             # get the two points of intersection of the two circles
             pos_points = circle_intersectoins([beacon_1["x"], beacon_1["y"], beacon_1["range"]],
                                               [beacon_2["x"], beacon_2["y"], beacon_2["range"]])
-            delta_min = np.inf
+            delta_min = 0.01
             for x, y in pos_points:
                 delta = abs((atan2(beacon_1["x"] - x, beacon_1["y"] - y) - beacon_1["bearing"]) -
                             (atan2(beacon_2["x"] - x, beacon_2["y"] - y) - beacon_2["bearing"]))
@@ -239,13 +241,15 @@ class Agent:
         # Set the latest measurements by getting the current belief
         measurements = self.get_sensor_measurement()
 
-        mean, cov = kalman_filter(mean, self.bel_cov, controls, measurements, delta_t)
+        mean, cov, pred_mean = kalman_filter(mean, self.bel_cov, controls, measurements, delta_t)
 
         # Update the belief
         self.bel_pos_x = mean[0]
         self.bel_pos_y = mean[1]
         self.bel_theta = mean[2]
         self.bel_cov = cov
+        self.est_bel_pos_x = pred_mean[0]
+        self.est_bel_pos_y = pred_mean[1]
 
 # if __name__ == "__main__":
 #     # define agent
