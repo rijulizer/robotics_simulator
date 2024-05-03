@@ -18,11 +18,8 @@ def simulate(agent: Agent,
     # Get current circle points of the agent
     curr_points_circle = agent.get_points_circle(8)
 
-    # detect landmarks
-    detected_landmarks = agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
-
     # Execute the standard move
-    agent.standard_move(vr, vl, delta_t_curr, detected_landmarks)
+    v, w = agent.standard_move(vr, vl, delta_t_curr)
 
     # Check on wall collisions
     collision_angles = get_wall_collision_angle(agent.get_agent_stats(),
@@ -33,7 +30,7 @@ def simulate(agent: Agent,
         agent.set_agent_stats(curr_pos)
 
         # Execute collision move (near the wall)
-        agent.collision_move(vr, vl, delta_t_curr, collision_angles, detected_landmarks)
+        v, w = agent.collision_move(vr, vl, delta_t_curr, collision_angles)
 
         # If still collision, then push back from the collision
         collision_angles = get_wall_collision_angle(agent.get_agent_stats(),
@@ -46,11 +43,13 @@ def simulate(agent: Agent,
                 "pos_x": new_x,
                 "pos_y": new_y,
                 "theta": agent.theta,
-                "bel_pos_x": agent.bel_pos_x,
-                "bel_pos_y": agent.bel_pos_y,
-                "bel_theta": agent.bel_theta,
-                "bel_cov": agent.bel_cov
             })
+
+    # Detect landmarks
+    agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
+
+    # Apply filter
+    agent.apply_filter(v, w, delta_t_curr)
 
     # Get next circle points of the agent
     next_points_circle = agent.get_points_circle(8)
@@ -80,10 +79,6 @@ def simulate(agent: Agent,
                 "pos_x": new_x,
                 "pos_y": new_y,
                 "theta": agent.theta,
-                "bel_pos_x": agent.bel_pos_x,
-                "bel_pos_y": agent.bel_pos_y,
-                "bel_theta": agent.bel_theta,
-                "bel_cov": agent.bel_cov
             })
         else:
             # Reset the agent position

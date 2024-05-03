@@ -233,5 +233,3 @@ class SensorManager:
                 })
 
         self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
-
-        return self.detected_landmarks
