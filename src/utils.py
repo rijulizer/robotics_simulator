@@ -306,7 +306,7 @@ def draw_belief_ellipse(surface, bel_cov, bel_pos_x, bel_pos_y, scale):
     if bel_cov is not None:
         cov = bel_cov[:2, :2] # asusmption always a diagonal matrix
         eigvals, eigvecs = np.linalg.eig(cov)
-        scale = 20 # arbitary scaling factor
+        scale = 50 # arbitary scaling factor
         # Find major and minor axes lengths
         major_axis = scale * np.sqrt(eigvals[0])
         minor_axis = scale * np.sqrt(eigvals[1])
