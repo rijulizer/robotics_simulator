@@ -6,6 +6,7 @@ from src.agent.sensor import SensorManager
 from src.utils import circle_intersectoins, atan2
 from src.filters import kalman_filter
 
+HANDLE_SENSORDATA_MEMORIZE = False
 
 class Agent:
     def __init__(self,
@@ -25,6 +26,7 @@ class Agent:
         self.bel_theta = theta
         self.est_bel_pos_x = pos_x
         self.est_bel_pos_y = pos_y
+
 
         # Constant Components
         self.radius = radius
@@ -240,6 +242,8 @@ class Agent:
 
         # Set the latest measurements by getting the current belief
         measurements = self.get_sensor_measurement()
+        if not np.any(measurements) and HANDLE_SENSORDATA_MEMORIZE:
+            measurements = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
 
         mean, cov, pred_mean = kalman_filter(mean, self.bel_cov, controls, measurements, delta_t)
 
