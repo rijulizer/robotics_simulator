@@ -1,5 +1,10 @@
 import numpy as np
 
+C = np.identity(3)
+Q = np.diag(np.random.normal(1,1,3))
+R = np.diag(np.random.normal(1,1,3))
+Q = np.abs(Q)
+R = np.abs(R)
 
 def kalman_filter(mean, cov, controls, measurements, delta_t):
     """
@@ -16,7 +21,8 @@ def kalman_filter(mean, cov, controls, measurements, delta_t):
         numpy.ndarray: The updated mean of the state estimate.
         numpy.ndarray: The updated covariance matrix of the state estimate.
     """
-
+    measurement_noise = np.zeros(3)
+    measurements += measurement_noise
     # state transition matrix A (nxn): n is the number of state variables
     A = np.identity(len(mean))
     # get orientation of the robot
@@ -26,27 +32,21 @@ def kalman_filter(mean, cov, controls, measurements, delta_t):
                   [delta_t * np.sin(theta), 0],
                   [0, delta_t]]
                  )
-    # measurement noise (nxn), initialize with random values
-    R = np.diag(np.random.rand(len(mean)))
-    # measurement matrix C (kxn), where k is the number of measurements
-    C = np.identity(len(mean))
-    # measurement noise (kxk), initialize with random values
-    Q = np.diag(np.random.rand(len(mean)))
 
     # prediction step
     # update the mean
-    mean = np.matmul(A, mean) + np.matmul(B, controls)
+    pred_mean = np.matmul(A, mean) + np.matmul(B, controls)
     # update covariance matrix
-    cov = np.matmul(np.matmul(A, cov), np.transpose(A)) + R
+    pred_cov = np.matmul(np.matmul(A, cov), np.transpose(A)) + R
     # correction step
     # Kalman gain
-    K = np.matmul(np.matmul(cov, np.transpose(C)), np.linalg.inv(np.matmul(np.matmul(C, cov), np.transpose(C)) + Q))
+    K = np.matmul(np.matmul(pred_cov, np.transpose(C)), np.linalg.inv(np.matmul(np.matmul(C, pred_cov), np.transpose(C)) + Q))
     # update the mean
-    mean = mean + np.matmul(K, measurements - np.matmul(C, mean))
+    mean = pred_mean + np.matmul(K, measurements - np.matmul(C, pred_mean))
     # update covariance matrix
-    cov = np.matmul(np.identity(len(mean)) - np.matmul(K, C), cov)
+    cov = np.matmul(np.identity(len(pred_mean)) - np.matmul(K, C), pred_cov)
 
-    return mean, cov
+    return mean, cov, pred_mean
 
 
 if __name__ == "__main__":
