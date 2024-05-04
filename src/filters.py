@@ -5,7 +5,8 @@ Q = np.diag(np.random.normal(1,1,3))
 R = np.diag(np.random.normal(1,1,3))
 Q = np.abs(Q)
 R = np.abs(R)
-MEASUREMENT_NOISE = np.zeros(3)
+
+MEASUREMENT_NOISE = lambda: np.zeros(3)
 
 def kalman_filter(mean, cov, controls, measurements, delta_t):
     """
@@ -22,7 +23,7 @@ def kalman_filter(mean, cov, controls, measurements, delta_t):
         numpy.ndarray: The updated mean of the state estimate.
         numpy.ndarray: The updated covariance matrix of the state estimate.
     """
-    measurements += MEASUREMENT_NOISE
+    measurements += MEASUREMENT_NOISE()
     # state transition matrix A (nxn): n is the number of state variables
     A = np.identity(len(mean))
     # get orientation of the robot
