@@ -200,11 +200,10 @@ class Agent:
         #     pygame.draw.line(surface, (0, 200, 150), (self.pos_x, self.pos_y),
         #                      (self.guided_line[0], self.guided_line[1]), width=int(self.radius / 10))
         #     self.guided_line = None
-        if len(self.sensor_manager.detected_landmarks) > 0:
-            for landmark in self.sensor_manager.detected_landmarks:
-                # draw line from agent to the landmark
-                pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark["x"], landmark["y"]),
-                                 width=3)
+        for landmark in self.sensor_manager.detected_landmarks[-2:]:
+            # draw line from agent to the landmark
+            pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark["x"], landmark["y"]),
+                                width=3)
 
     def get_sensor_measurement(self):
         """
