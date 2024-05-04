@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 
 
 class Line:
@@ -61,16 +62,30 @@ class Environment:
             [line_3_end_pos_x, line_3_end_pos_y],
             [border_x, border_y],
             [border_x, border_y + border_height],
+            [border_x, line_1_end_pos_y],
+            # [border_x, line_3_start_pos_y],
             [border_x + border_len, border_y],
-            [border_x + border_len, border_y + border_height]
+            [border_x + border_len, border_y + border_height],
+            [line_1_start_pos_x, border_y + border_height],
+            [line_2_start_pos_x, line_1_end_pos_y],
+            [line_3_start_pos_x, border_y + border_height],
+            [line_1_start_pos_x, line_2_end_pos_y],
+            [line_3_start_pos_x, line_2_end_pos_y],
+            [border_x, line_2_end_pos_y],
+            [line_2_end_pos_x, border_y],
+            [border_x + border_len, line_2_end_pos_y],
+            [border_x + border_len, line_1_end_pos_y],
         ]
    
-    def put_landmarks(self, win):
+    def put_landmarks(self, win, number_of_landmarks=20):
 
         # put landmarks on the environment
         # TODO: now all points are put as landmarks, we can put only some of them randomly and experiment
+        # Pick random points from the environment points
+        self.points = np.array(self.points)
+        random_points = self.points[np.random.choice(self.points.shape[0], number_of_landmarks, replace=False), :]
         self.landmarks = []
-        for i, point in enumerate(self.points):
+        for i, point in enumerate(random_points):
             pygame.draw.circle(win, (255, 0, 0), (point[0], point[1]), 7)
             # add signatures to the landmarks
             self.landmarks.append({
