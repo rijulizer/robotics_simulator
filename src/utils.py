@@ -3,6 +3,8 @@ from src.environment import Line
 import sympy as sp
 import pygame
 
+# ALPHA = [0.0, 0.0, 0.0, 0.0]z
+
 def euclidean_distance(x1, y1, x2, y2):
     """
     Calculate the Euclidean distance between two points
@@ -314,3 +316,20 @@ def draw_belief_ellipse(surface, bel_cov, bel_pos_x, bel_pos_y, scale):
         pygame.draw.ellipse(ellipse_surface, (240, 90, 90), (0, 0, major_axis, minor_axis), 5)
         ellipse_surface = pygame.transform.rotate(ellipse_surface, angle)
         surface.blit(ellipse_surface, ellipse_surface.get_rect(center = (bel_pos_x,bel_pos_y)))
+
+def add_control_noise(v, w):
+    """adds noise to the control inputs.
+    Args:
+        v (float): The forward velocity.
+        w (float): The angular velocity.
+    Returns:
+        tuple: The control inputs with added noise.
+    """
+    controls = [v, w]
+    # zero cebtred gaussian noise where the standard deviation is proportional to the control inputs
+    # alphas are global parameters
+    vel_noise = np.random.normal(0, ALPHA[0] * np.abs(controls[0]) + ALPHA[1] * np.abs(controls[1]))
+    angular_noise = np.random.normal(0, ALPHA[2] * np.abs(controls[0]) + ALPHA[3] * np.abs(controls[1]))
+    v += vel_noise
+    w += angular_noise
+    return (v, w)

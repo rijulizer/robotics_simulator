@@ -3,10 +3,12 @@ import pygame
 from pygame import Surface
 
 from src.agent.sensor import SensorManager
-from src.utils import circle_intersectoins, atan2
+from src.utils import circle_intersectoins, atan2, add_control_noise
 from src.filters import kalman_filter
 
 HANDLE_SENSORDATA_MEMORIZE = False
+ADD_CONTROL_NOISE = False
+
 
 class Agent:
     def __init__(self,
@@ -53,10 +55,13 @@ class Agent:
         w = 0
         if vl == vr:
             if vl != 0:
-                # update positions
-                self.pos_x += vl * delta_t * np.cos(self.theta)
-                self.pos_y += vl * delta_t * np.sin(self.theta)
                 v = vl
+                if ADD_CONTROL_NOISE:
+                    v, w = add_control_noise(v, w)
+                # update positions
+                self.pos_x += v * delta_t * np.cos(self.theta)
+                self.pos_y += v * delta_t * np.sin(self.theta)
+                
 
         else:
             # get angular velocity
@@ -64,6 +69,10 @@ class Agent:
             # get the ICC radius
             R = self.radius * (vr + vl) / (vr - vl)
             v = R * w
+
+            if ADD_CONTROL_NOISE:
+                v, w = add_control_noise(v, w)
+            
             # ICC coordinates
             ICC_x = self.pos_x - R * np.sin(self.theta)
             ICC_y = self.pos_y + R * np.cos(self.theta)
@@ -122,7 +131,7 @@ class Agent:
                 R = self.radius * (vr + vl) / (vr - vl)
                 # get linear velocity
                 v = R * w
-
+            
             # get the component of v in the direction of glide
             v = v * np.cos(collision_angle)
             # compute angle of velocity from reference frame
@@ -252,7 +261,7 @@ class Agent:
         self.bel_theta = mean[2]
         self.bel_cov = cov
         self.est_bel_pos_x = pred_mean[0]
-        self.est_bel_pos_y = pred_mean[1]
+    self.est_bel_pos_y = pred_mean[1]
 
 # if __name__ == "__main__":
 #     # define agent
