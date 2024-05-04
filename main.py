@@ -15,7 +15,8 @@ logging.basicConfig(level=logging.ERROR, format='%(levelname)s - %(message)s')
 def run_saved_simulation(
         delta_t: float,
         graphGUI: GraphGUI,
-        track: list
+        track: list,
+        num_landmarks: int = 20
 ):
     if track is None or len(track) == 0:
         raise ValueError("No track data found")
@@ -37,7 +38,7 @@ def run_saved_simulation(
     # Initialize and draw environment
     env = Environment(environment_surface)
     # put landmarks on the environment
-    env.put_landmarks(environment_surface)
+    env.put_landmarks(environment_surface, num_landmarks)
     # define agent
     pos_x = 200
     pos_y = 200
@@ -106,7 +107,8 @@ def run_saved_simulation(
 def run_simulation(
         delta_t: float,
         graphGUI: GraphGUI,
-        track: bool = False
+        track: bool = False,
+        num_landmarks: int = 20
 ):
     # initialize
     pygame.init()
@@ -125,7 +127,7 @@ def run_simulation(
     # Initialize and draw environment
     env = Environment(environment_surface)
     # put landmarks on the environment
-    env.put_landmarks(environment_surface)
+    env.put_landmarks(environment_surface, num_landmarks)
     # define agent
     pos_x = 200
     pos_y = 200
@@ -221,8 +223,9 @@ def run_simulation(
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
 
     # save the tracker
-    with open("tracker.pkl", "wb") as f:
-        pkl.dump(tracker, f)
+    if track:
+        with open("tracker.pkl", "wb") as f:
+            pkl.dump(tracker, f)
 
     pygame.quit()
 
@@ -269,10 +272,23 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     pygame.display.update()
 
 
+save_s = False
+graph_plot = None
+track = False
+
+
 if __name__ == "__main__":
-    # run_simulation(delta_t=1, graphGUI=GraphGUI(), track=False)
-    # Run save simulation
-    with open("tracker.pkl", "rb") as f:
-        track = pkl.load(f)
-    run_saved_simulation(delta_t=1, graphGUI=None, track=track)
-    #run_simulation(delta_t=1)
+    if not save_s:
+        run_simulation(delta_t=1,
+                       graphGUI=graph_plot,
+                       track=False,
+                       num_landmarks=8)
+    else:
+        # Run save simulation
+        with open("tracker.pkl", "rb") as f:
+            track = pkl.load(f)
+        run_saved_simulation(delta_t=1,
+                             graphGUI=graph_plot,
+                             track=track,
+                             num_landmarks=8)
+    # run_simulation(delta_t=1)

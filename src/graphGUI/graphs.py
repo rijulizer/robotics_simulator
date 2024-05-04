@@ -68,11 +68,11 @@ class GraphGUI:
         mdy3 = np.mean(self.dy3)
 
         # set x- and y-limits based on their mean
-        self.ah1.set_ylim(-5, mdy1 + 500)
+        self.ah1.set_ylim(-5, mdy1 + 60)
         self.ah1.set_xlim(self.interval[self.start], self.interval[self.start + self.visible])
-        self.ah2.set_ylim(-5, mdy2 + 500)
+        self.ah2.set_ylim(-5, mdy2 + 60)
         self.ah2.set_xlim(self.interval[self.start], self.interval[self.start + self.visible])
-        self.ah3.set_ylim(-5, 180)
+        self.ah3.set_ylim(-5, mdy3 + 30)
         self.ah3.set_xlim(self.interval[self.start], self.interval[self.start + self.visible])
 
         # update start
