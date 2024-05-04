@@ -5,16 +5,108 @@ from src.environment import Environment
 from src.engine import simulate
 from src.utils import draw_belief_ellipse
 from src.graphGUI.graphs import GraphGUI
+import pickle as pkl
 import logging
-
 
 # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 logging.basicConfig(level=logging.ERROR, format='%(levelname)s - %(message)s')
 
 
+def run_saved_simulation(
+        delta_t: float,
+        graphGUI: GraphGUI,
+        track: list
+):
+    if track is None or len(track) == 0:
+        raise ValueError("No track data found")
+
+    # initialize
+    pygame.init()
+
+    # Create window
+    win_length = 1000
+    win_height = 800
+    win = pygame.display.set_mode((win_length, win_height))
+    pygame.display.set_caption("Robotics Simulation")
+    # Fonts
+    font = pygame.font.Font(None, 30)
+
+    # Define environment surface
+    environment_surface = pygame.Surface((win_length, win_height))
+    environment_surface.fill((255, 255, 255))
+    # Initialize and draw environment
+    env = Environment(environment_surface)
+    # put landmarks on the environment
+    env.put_landmarks(environment_surface)
+    # define agent
+    pos_x = 200
+    pos_y = 200
+    radius = 30
+    theta = 0
+
+    number_sensors = 12
+    sensor_length = 150
+
+    agent = Agent(pos_x, pos_y, radius, theta)
+
+    sensor_manager = SensorManager(agent.get_agent_stats(),
+                                   number_sensors,
+                                   sensor_length,
+                                   env.line_list)
+    # convert radians to degrees
+    theta = theta * 180 / 3.14
+    # attach sensors to agent
+    agent.set_sensor(sensor_manager)
+    # detect landmarks
+    # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
+    # win.blit(environment_surface, (0, 0))
+    # logging.debug(f"Detected Landmarks: {detected_landmarks}")
+
+    # Define variables
+    delta_t_max = delta_t
+    delta_t_curr = delta_t_max
+
+    freeze = False
+    time_step = 0
+    for vl, vr in track:
+        pygame.time.delay(1)
+
+        # core logic starts here
+        success = simulate(agent,
+                           vr,
+                           vl,
+                           delta_t_curr,
+                           env.line_list,
+                           env.landmarks,
+                           time_step
+                           )
+
+        if not success:
+            delta_t_curr -= 0.1
+        else:
+            delta_t_curr = delta_t_max
+
+        # update the time ste
+        time_step += 1
+
+        # update the graph
+        if graphGUI:
+            delta_x = abs(agent.pos_x - agent.bel_pos_x)
+            delta_y = abs(agent.pos_y - agent.bel_pos_y)
+            delta_theta = abs(agent.theta - agent.bel_theta)
+            graphGUI.update_plot({"delta_x": delta_x,
+                                  "delta_y": delta_y,
+                                  "delta_theta": delta_theta})
+
+        draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
+
+    pygame.quit()
+
+
 def run_simulation(
         delta_t: float,
-        graphGUI: GraphGUI
+        graphGUI: GraphGUI,
+        track: bool = False
 ):
     # initialize
     pygame.init()
@@ -71,6 +163,7 @@ def run_simulation(
     sim_run = True
     freeze = False
     time_step = 0
+    tracker = []
     while sim_run:
         pygame.time.delay(25)
 
@@ -110,54 +203,76 @@ def run_simulation(
             else:
                 delta_t_curr = delta_t_max
 
+            # update the time ste
+            time_step += 1
+
+            if track:
+                tracker.append((vl, vr))
+
             # update the graph
             if graphGUI:
-                graphGUI.update_plot({"vl": vl, "vr": vr})
+                delta_x = abs(agent.pos_x - agent.bel_pos_x)
+                delta_y = abs(agent.pos_y - agent.bel_pos_y)
+                delta_theta = abs(agent.theta - agent.bel_theta)
+                graphGUI.update_plot({"delta_x": delta_x,
+                                      "delta_y": delta_y,
+                                      "delta_theta": delta_theta})
 
-        # Fill the window with white
-        win.fill((255, 255, 255))
+        draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
 
-        # Blit the pre rendered environment onto the screen
-        win.blit(environment_surface, (0, 0))
-
-        # Wheel velocity display
-        text_vl = font.render(f"v_l: {vl}", True, (0, 0, 0))
-        text_vr = font.render(f"v_r: {vr}", True, (0, 0, 0))
-        text_delta_t = font.render(f"delta_t: {delta_t}", True, (0, 0, 0))
-        text_freeze = font.render(f"freeze: {freeze}", True, (0, 0, 0))
-        win.blit(text_vl, (50, 10))
-        win.blit(text_vr, (50, 40))
-        win.blit(text_delta_t, (50, 70))
-        win.blit(text_freeze, (200, 10))
-
-        # get the agents belief
-        # agent.get_belief(detected_landmarks)
-        # logging.debug(f"Actual position: {agent.pos_x, agent.pos_y, agent.theta}")
-        # logging.debug(f"Belief: {agent.bel_pos_x, agent.bel_pos_y, agent.bel_theta}")
-
-        # Agent trajectory
-        pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
-        pygame.draw.circle(environment_surface, (240, 90, 90), (agent.bel_pos_x, agent.bel_pos_y), 2)
-        pygame.draw.circle(environment_surface, (0, 0, 70), (agent.est_bel_pos_x, agent.est_bel_pos_y), 1)
-        # print the belief cov matrix in every 100th iteration
-        if time_step % 100 == 0:
-            draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale=100)
-
-        # detect landmarks
-        # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
-        # for i in detected_landmarks:
-        #     landmark_phi = font.render(f"{i[0], i[1], round(i[4]* 180 / 3.14,2)}", True, (0, 0, 0))
-        #     win.blit(landmark_phi, (i[0], i[1]))
-        logging.debug(f"agent_bel_cov: {agent.bel_cov}")
-        agent.draw(win)  # Draw agent components
-
-        time_step += 1
-        # Refresh the window
-        pygame.display.update()
+    # save the tracker
+    with open("tracker.pkl", "wb") as f:
+        pkl.dump(tracker, f)
 
     pygame.quit()
 
 
+def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font):
+    # Fill the window with white
+    win.fill((255, 255, 255))
+
+    # Blit the pre rendered environment onto the screen
+    win.blit(environment_surface, (0, 0))
+
+    # Wheel velocity display
+    text_vl = font.render(f"v_l: {vl}", True, (0, 0, 0))
+    text_vr = font.render(f"v_r: {vr}", True, (0, 0, 0))
+    text_delta_t = font.render(f"delta_t: {delta_t}", True, (0, 0, 0))
+    text_freeze = font.render(f"freeze: {freeze}", True, (0, 0, 0))
+    win.blit(text_vl, (50, 10))
+    win.blit(text_vr, (50, 40))
+    win.blit(text_delta_t, (50, 70))
+    win.blit(text_freeze, (200, 10))
+
+    # get the agents belief
+    # agent.get_belief(detected_landmarks)
+    # logging.debug(f"Actual position: {agent.pos_x, agent.pos_y, agent.theta}")
+    # logging.debug(f"Belief: {agent.bel_pos_x, agent.bel_pos_y, agent.bel_theta}")
+
+    # Agent trajectory
+    pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
+    pygame.draw.circle(environment_surface, (240, 90, 90), (agent.bel_pos_x, agent.bel_pos_y), 2)
+    pygame.draw.circle(environment_surface, (0, 0, 70), (agent.est_bel_pos_x, agent.est_bel_pos_y), 1)
+    # print the belief cov matrix in every 100th iteration
+    if time_step % 100 == 0:
+        draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale=100)
+
+    # detect landmarks
+    # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
+    # for i in detected_landmarks:
+    #     landmark_phi = font.render(f"{i[0], i[1], round(i[4]* 180 / 3.14,2)}", True, (0, 0, 0))
+    #     win.blit(landmark_phi, (i[0], i[1]))
+    logging.debug(f"agent_bel_cov: {agent.bel_cov}")
+    agent.draw(win)  # Draw agent components
+
+    # Refresh the window
+    pygame.display.update()
+
+
 if __name__ == "__main__":
-    run_simulation(delta_t=1, graphGUI=GraphGUI())
+    # run_simulation(delta_t=1, graphGUI=GraphGUI(), track=False)
+    # Run save simulation
+    with open("tracker.pkl", "rb") as f:
+        track = pkl.load(f)
+    run_saved_simulation(delta_t=1, graphGUI=None, track=track)
     #run_simulation(delta_t=1)
