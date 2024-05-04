@@ -70,7 +70,19 @@ def run_saved_simulation(
     freeze = False
     time_step = 0
     for vl, vr in track:
-        pygame.time.delay(1)
+        pygame.time.delay(25)
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    freeze = not freeze
+
+        while freeze:
+            pygame.time.delay(25)
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        freeze = not freeze
 
         # core logic starts here
         success = simulate(agent,
@@ -272,7 +284,7 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     pygame.display.update()
 
 
-save_s = False
+save_s = True
 graph_plot = None
 track = False
 
