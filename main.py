@@ -287,11 +287,11 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     pygame.display.update()
 
 
-def run_experiments(track, file_name_win="Experiment", exp_name="Experiment RIJU"):
+def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name="Experiment RIJU"):
     run_saved_simulation(delta_t=1,
                          graphGUI=graph_plot,
                          track=track,
-                         num_landmarks=8,
+                         num_landmarks=num_landmarks,
                          file_name_win=file_name_win)
 
     # Show simulation in milliseconds
@@ -299,7 +299,7 @@ def run_experiments(track, file_name_win="Experiment", exp_name="Experiment RIJU
     # Write in .txt file with the average values of delta x, delta y, delta theta, also in he top is the name of experiments
     if graph_plot and save_s:
         print(len(graph_plot.store1))
-        with open('./src/experiments_data/experiment_results.txt', 'w') as f:
+        with open('./src/experiments_data/{exp_name}_results.txt', 'w') as f:
             f.write(f"Experiment Name: {exp_name}\n")
             f.write(f"Average Delta x: {round(np.mean(graph_plot.store1), 2)}\n")
             f.write(f"Average Delta y: {round(np.mean(graph_plot.store2), 2)}\n")

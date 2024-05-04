@@ -12,6 +12,7 @@ def simulate(agent: Agent,
              env_landmarks: list,
              time_step: int
              ) -> bool:
+    result = True
     # Current agent position
     curr_pos = agent.get_agent_stats()
 
@@ -45,12 +46,6 @@ def simulate(agent: Agent,
                 "theta": agent.theta,
             })
 
-    # Detect landmarks
-    agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
-
-    # Apply filter
-    agent.apply_filter(v, w, delta_t_curr)
-
     # Get next circle points of the agent
     next_points_circle = agent.get_points_circle(8)
 
@@ -83,6 +78,11 @@ def simulate(agent: Agent,
         else:
             # Reset the agent position
             agent.set_agent_stats(curr_pos)
-            return False
+            result = False
+    # Detect landmarks
+    agent.sensor_manager.update_agent_sensor_info(agent.get_agent_stats())
+    agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
 
-    return True
+    # Apply filter
+    agent.apply_filter(v, w, delta_t_curr)
+    return result

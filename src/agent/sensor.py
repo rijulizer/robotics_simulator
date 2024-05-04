@@ -231,5 +231,4 @@ class SensorManager:
                     "bearing": bear_i,
                     "time_step": time
                 })
-
         self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])

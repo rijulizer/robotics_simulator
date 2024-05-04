@@ -6,9 +6,7 @@ from src.agent.sensor import SensorManager
 from src.utils import circle_intersectoins, atan2, add_control_noise
 from src.filters import kalman_filter
 
-HANDLE_SENSORDATA_MEMORIZE = False
-ADD_CONTROL_NOISE = False
-
+HANDLE_SENSORDATA_MEMORIZE = True
 
 class Agent:
     def __init__(self,
@@ -56,8 +54,6 @@ class Agent:
         if vl == vr:
             if vl != 0:
                 v = vl
-                if ADD_CONTROL_NOISE:
-                    v, w = add_control_noise(v, w)
                 # update positions
                 self.pos_x += v * delta_t * np.cos(self.theta)
                 self.pos_y += v * delta_t * np.sin(self.theta)
@@ -69,9 +65,6 @@ class Agent:
             # get the ICC radius
             R = self.radius * (vr + vl) / (vr - vl)
             v = R * w
-
-            if ADD_CONTROL_NOISE:
-                v, w = add_control_noise(v, w)
             
             # ICC coordinates
             ICC_x = self.pos_x - R * np.sin(self.theta)
@@ -189,7 +182,7 @@ class Agent:
         Draw Agent Components
         """
         # update the position of the agent to the sensor manager
-        self.sensor_manager.update_agent_sensor_info(self.get_agent_stats())
+        #self.sensor_manager.update_agent_sensor_info(self.get_agent_stats())
         # draw object and assign to self.body
         self.body = pygame.draw.circle(surface, self.color, (self.pos_x, self.pos_y), self.radius)
         pygame.draw.circle(surface, (0, 0, 0), (self.pos_x, self.pos_y), self.radius, 3)
@@ -200,7 +193,6 @@ class Agent:
         y_end = self.pos_y + self.radius * np.sin(self.theta)
         self.line = pygame.draw.line(surface, (0, 0, 0), (self.pos_x, self.pos_y), (x_end, y_end),
                                      width=int(self.radius / 10))
-
         # Draw sensor lines
         self.sensor_manager.draw(surface)
 
@@ -247,12 +239,10 @@ class Agent:
         # Initialize mean as the initial belief
         mean = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
         controls = np.array([v, w])
-
         # Set the latest measurements by getting the current belief
         measurements = self.get_sensor_measurement()
         if not np.any(measurements) and HANDLE_SENSORDATA_MEMORIZE:
             measurements = np.array([self.bel_pos_x, self.bel_pos_y, self.bel_theta])
-
         mean, cov, pred_mean = kalman_filter(mean, self.bel_cov, controls, measurements, delta_t)
 
         # Update the belief
