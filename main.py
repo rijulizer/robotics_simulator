@@ -6,6 +6,7 @@ from src.engine import simulate
 from src.utils import draw_belief_ellipse
 from src.graphGUI.graphs import GraphGUI
 import pickle as pkl
+import numpy as np
 import logging
 
 # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
@@ -16,7 +17,8 @@ def run_saved_simulation(
         delta_t: float,
         graphGUI: GraphGUI,
         track: list,
-        num_landmarks: int = 20
+        num_landmarks: int = 20,
+        file_name_win: str = "Experiment"
 ):
     if track is None or len(track) == 0:
         raise ValueError("No track data found")
@@ -70,7 +72,7 @@ def run_saved_simulation(
     freeze = False
     time_step = 0
     for vl, vr in track:
-        pygame.time.delay(25)
+        pygame.time.delay(1)
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -113,6 +115,7 @@ def run_saved_simulation(
 
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
 
+    pygame.image.save(win, "./src/experiments_data/" + file_name_win + ".svg")
     pygame.quit()
 
 
@@ -284,23 +287,40 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     pygame.display.update()
 
 
-save_s = True
-graph_plot = None
-track = False
+def run_experiments(track, file_name_win="Experiment", exp_name="Experiment RIJU"):
+    run_saved_simulation(delta_t=1,
+                         graphGUI=graph_plot,
+                         track=track,
+                         num_landmarks=8,
+                         file_name_win=file_name_win)
 
+    # Show simulation in milliseconds
+    print("Simulation completed successfully")
+    # Write in .txt file with the average values of delta x, delta y, delta theta, also in he top is the name of experiments
+    if graph_plot and save_s:
+        print(len(graph_plot.store1))
+        with open('./src/experiments_data/experiment_results.txt', 'w') as f:
+            f.write(f"Experiment Name: {exp_name}\n")
+            f.write(f"Average Delta x: {round(np.mean(graph_plot.store1), 2)}\n")
+            f.write(f"Average Delta y: {round(np.mean(graph_plot.store2), 2)}\n")
+            f.write(f"Average Delta theta: {round(np.mean(graph_plot.store3), 2)}\n")
+        # Save figure plot
+        graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.svg")
+
+
+save_s = True
+graph_plot = GraphGUI()
+track_res = False
 
 if __name__ == "__main__":
+    # Start Timer for the simulation with python in build function
     if not save_s:
         run_simulation(delta_t=1,
                        graphGUI=graph_plot,
-                       track=False,
+                       track=track_res,
                        num_landmarks=8)
     else:
         # Run save simulation
         with open("tracker.pkl", "rb") as f:
             track = pkl.load(f)
-        run_saved_simulation(delta_t=1,
-                             graphGUI=graph_plot,
-                             track=track,
-                             num_landmarks=8)
-    # run_simulation(delta_t=1)
+        run_experiments(track, file_name_win="Experiment1", exp_name="Experiment RIJU")

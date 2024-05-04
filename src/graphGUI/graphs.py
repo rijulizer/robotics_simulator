@@ -13,12 +13,15 @@ class GraphGUI:
         plt.ion()
 
         self.start = 0
-        self.visible = 500
+        self.visible = 662
 
         # initialize deques
         self.dy1 = deque(np.zeros(self.visible), self.visible)
         self.dy2 = deque(np.zeros(self.visible), self.visible)
         self.dy3 = deque(np.zeros(self.visible), self.visible)
+        self.store1 = []
+        self.store2 = []
+        self.store3 = []
         self.dx = deque(np.zeros(self.visible), self.visible)
 
         # get interval of entire time frame
@@ -35,7 +38,6 @@ class GraphGUI:
 
         # define axis2, labels, and legend
         self.ah2 = self.fig.add_subplot(312)
-        self.ah2.set_xlabel("Time step", fontsize=14, labelpad=10)
         self.ah2.set_ylabel("Delta Y", fontsize=14)
         self.l2, = self.ah2.plot(self.dx, self.dy2, color='silver', label="abs(Delta Y)")
         self.ah2.legend(loc="upper right", fontsize=12, fancybox=True, framealpha=0.5)
@@ -52,6 +54,9 @@ class GraphGUI:
         self.dy1.append(data["delta_x"])
         self.dy2.append(data["delta_y"])
         self.dy3.append(np.degrees(data["delta_theta"]))
+        self.store1.append(data["delta_x"])
+        self.store2.append(data["delta_y"])
+        self.store3.append(np.degrees(data["delta_theta"]))
         self.dx.extend(self.interval[self.start:self.start + self.visible])
 
         # update plot
@@ -68,11 +73,11 @@ class GraphGUI:
         mdy3 = np.mean(self.dy3)
 
         # set x- and y-limits based on their mean
-        self.ah1.set_ylim(-5, mdy1 + 60)
+        self.ah1.set_ylim(-5, 30)
         self.ah1.set_xlim(self.interval[self.start], self.interval[self.start + self.visible])
-        self.ah2.set_ylim(-5, mdy2 + 60)
+        self.ah2.set_ylim(-5, 30)
         self.ah2.set_xlim(self.interval[self.start], self.interval[self.start + self.visible])
-        self.ah3.set_ylim(-5, mdy3 + 30)
+        self.ah3.set_ylim(-5, 20)
         self.ah3.set_xlim(self.interval[self.start], self.interval[self.start + self.visible])
 
         # update start

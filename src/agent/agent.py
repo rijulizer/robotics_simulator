@@ -261,7 +261,7 @@ class Agent:
         self.bel_theta = mean[2]
         self.bel_cov = cov
         self.est_bel_pos_x = pred_mean[0]
-    self.est_bel_pos_y = pred_mean[1]
+        self.est_bel_pos_y = pred_mean[1]
 
 # if __name__ == "__main__":
 #     # define agent
