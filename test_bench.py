@@ -30,8 +30,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=20,
-            file_name_win="Exp_w_measurement_noise",
-            exp_name="Exp_w_measurement_noise",
+            file_name_win="Exp_w_measurement_noise_mlandmark",
+            exp_name="Exp_w_measurement_noise_mlandmark",
         )
 
     def test_measurement_noise_llandmark(self):
@@ -39,8 +39,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=12,
-            file_name_win="Exp_w_measurement_noise",
-            exp_name="Exp_w_measurement_noise",
+            file_name_win="Exp_w_measurement_noise_llandmark",
+            exp_name="Exp_w_measurement_noise_llandmark",
         )
 
     def test_sensor_noise_mlandmark(self):
@@ -49,8 +49,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=20,
-            file_name_win="Exp_w_sensor_noise",
-            exp_name="Exp_w_sensor_noise",
+            file_name_win="Exp_sensor_noise_mlandmark",
+            exp_name="Exp_sensor_noise_mlandmark",
         )
 
     def test_sensor_noise_llandmark(self):
@@ -59,8 +59,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=12,
-            file_name_win="Exp_w_sensor_noise",
-            exp_name="Exp_w_sensor_noise",
+            file_name_win="Exp_sensor_noise_llandmark",
+            exp_name="Exp_sensor_noise_llandmark",
         )
 
     def test_control_noise_mlandmark(self):
@@ -70,8 +70,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=20,
-            file_name_win="Exp_w_control_noise",
-            exp_name="Exp_w_control_noise",
+            file_name_win="Exp_control_noise_mlandmark",
+            exp_name="Exp_control_noise_mlandmark",
         )
 
     def test_control_noise_llandmark(self):
@@ -81,8 +81,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=12,
-            file_name_win="Exp_w_control_noise",
-            exp_name="Exp_w_control_noise",
+            file_name_win="Exp_control_noise_llandmark",
+            exp_name="Exp_control_noise_llandmark",
         )
 
     def test_good_case(self):
@@ -107,8 +107,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=20,
-            file_name_win="Exp_less_landmarks",
-            exp_name="Exp_less_landmarks",
+            file_name_win="Exp_zero_noise_mlandmark",
+            exp_name="Exp_zero_noise_mlandmark",
         )
 
     def test_zero_noise_llandmark(self):
@@ -117,8 +117,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=12,
-            file_name_win="Exp_less_landmarks",
-            exp_name="Exp_less_landmarks",
+            file_name_win="Exp_zero_noise_llandmark",
+            exp_name="Exp_zero_noise_llandmark",
         )
 
     def test_q_noise_mlandmark(self):
@@ -127,8 +127,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=20,
-            file_name_win="Exp_less_landmarks",
-            exp_name="Exp_less_landmarks",
+            file_name_win="Exp_q_noise_mlandmark",
+            exp_name="Exp_q_noise_mlandmark",
         )
 
     def test_q_noise_llandmark(self):
@@ -137,8 +137,8 @@ class Experiments(unittest.TestCase):
         run_experiments(
             self.track,
             num_landmarks=12,
-            file_name_win="Exp_less_landmarks",
-            exp_name="Exp_less_landmarks",
+            file_name_win="Exp_q_noise_llandmark",
+            exp_name="Exp_q_noise_llandmark",
         )
 
 

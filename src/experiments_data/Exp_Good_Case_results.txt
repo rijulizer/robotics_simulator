@@ -1,0 +1,4 @@
+Experiment Name: Exp_Good_Case
+Average Delta x: 0.2
+Average Delta y: 0.1
+Average Delta theta: 0.79

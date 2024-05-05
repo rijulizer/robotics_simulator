@@ -115,7 +115,7 @@ def run_saved_simulation(
 
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
 
-    pygame.image.save(win, "./src/experiments_data/" + file_name_win + ".svg")
+    pygame.image.save(win, "./src/experiments_data/" + file_name_win + ".png")
     pygame.quit()
 
 
@@ -299,7 +299,7 @@ def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name
     # Write in .txt file with the average values of delta x, delta y, delta theta, also in he top is the name of experiments
     if graph_plot and save_s:
         print(len(graph_plot.store1))
-        with open('./src/experiments_data/{exp_name}_results.txt', 'w') as f:
+        with open(f'./src/experiments_data/{exp_name}_results.txt', 'w') as f:
             f.write(f"Experiment Name: {exp_name}\n")
             f.write(f"Average Delta x: {round(np.mean(graph_plot.store1), 2)}\n")
             f.write(f"Average Delta y: {round(np.mean(graph_plot.store2), 2)}\n")
