@@ -82,6 +82,7 @@ class Environment:
         # put landmarks on the environment
         # TODO: now all points are put as landmarks, we can put only some of them randomly and experiment
         # Pick random points from the environment points
+        np.random.seed(14)
         self.points = np.array(self.points)
         random_points = self.points[np.random.choice(self.points.shape[0], number_of_landmarks, replace=False), :]
         self.landmarks = []

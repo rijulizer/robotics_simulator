@@ -4,7 +4,9 @@ C = np.identity(3)
 Q = np.abs(np.diag(np.random.normal(1,1,3)))
 R = np.abs(np.diag(np.random.normal(1,1,3)))
 
+# default global parameters
 MEASUREMENT_NOISE = lambda: np.zeros(3)
+# default logic: return the controls as they are
 CONTROL_NOISE = lambda controls: controls
 
 def kalman_filter(mean, cov, controls, measurements, delta_t):
@@ -22,6 +24,7 @@ def kalman_filter(mean, cov, controls, measurements, delta_t):
         numpy.ndarray: The updated mean of the state estimate.
         numpy.ndarray: The updated covariance matrix of the state estimate.
     """
+    measurements = measurements.astype(np.float64)
     measurements += MEASUREMENT_NOISE()
     controls = CONTROL_NOISE(controls)
     # state transition matrix A (nxn): n is the number of state variables
