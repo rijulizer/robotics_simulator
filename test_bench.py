@@ -39,14 +39,14 @@ class Experiments(unittest.TestCase):
     def test_default_noise_llandmark(self):
         run_experiments(
             self.track,
-            num_landmarks=10,
+            num_landmarks=6,
             file_name_win="Exp_default_noise_llandmark",
             exp_name="Exp_default_noise_llandmark",
         )
 
     def test_zero_noise_mlandmark(self):
         filters.R = np.zeros((3, 3))
-        filters.Q = np.array([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]])
+        filters.Q = np.array([[0.01, 0, 0], [0, 0.01, 0], [0, 0, 0.01]])
         run_experiments(
             self.track,
             num_landmarks=20,
@@ -56,55 +56,17 @@ class Experiments(unittest.TestCase):
 
     def test_zero_noise_llandmark(self):
         filters.R = np.zeros((3, 3))
-        filters.Q = np.array([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]])
+        filters.Q = np.array([[0.01, 0, 0], [0, 0.01, 0], [0, 0, 0.01]])
         run_experiments(
             self.track,
-            num_landmarks=12,
+            num_landmarks=6,
             file_name_win="Exp_zero_noise_llandmark",
             exp_name="Exp_zero_noise_llandmark",
         )
-
-    def test_measurement_noise_mlandmark(self):
-        filters.MEASUREMENT_NOISE = lambda: np.random.normal(0, 1, 3)
-        run_experiments(
-            self.track,
-            num_landmarks=20,
-            file_name_win="Exp_w_measurement_noise_mlandmark",
-            exp_name="Exp_w_measurement_noise_mlandmark",
-        )
-
-    def test_measurement_noise_llandmark(self):
-        filters.MEASUREMENT_NOISE = lambda: np.random.normal(0, 1, 3)
-        run_experiments(
-            self.track,
-            num_landmarks=12,
-            file_name_win="Exp_w_measurement_noise_llandmark",
-            exp_name="Exp_w_measurement_noise_llandmark",
-        )
-
-    def test_sensor_noise_mlandmark(self):
-        robot_agent.HANDLE_SENSORDATA_MEMORIZE = True
-        filters.R = np.array([[1.23, 0, 0], [0, 2.23, 0], [0, 0, 8.230]])
-        run_experiments(
-            self.track,
-            num_landmarks=20,
-            file_name_win="Exp_sensor_noise_mlandmark",
-            exp_name="Exp_sensor_noise_mlandmark",
-        )
-
-    def test_sensor_noise_llandmark(self):
-        robot_agent.HANDLE_SENSORDATA_MEMORIZE = True
-        filters.R = np.array([[1.23, 0, 0], [0, 2.23, 0], [0, 0, 8.230]])
-        run_experiments(
-            self.track,
-            num_landmarks=12,
-            file_name_win="Exp_sensor_noise_llandmark",
-            exp_name="Exp_sensor_noise_llandmark",
-        )
-
+    
     def test_control_noise_mlandmark(self):
         filters.CONTROL_NOISE = lambda controls: add_control_noise(
-            controls, alpha=[0.01, 0.01, 0.01, 0.01]
+            controls, alpha=[0.6, 0.6, 0.6, 0.6]
         )
         run_experiments(
             self.track,
@@ -115,70 +77,166 @@ class Experiments(unittest.TestCase):
 
     def test_control_noise_llandmark(self):
         filters.CONTROL_NOISE = lambda controls: add_control_noise(
-            controls, alpha=[0.01, 0.01, 0.01, 0.01]
+            controls, alpha=[0.6, 0.6, 0.6, 0.6]
         )
         run_experiments(
             self.track,
-            num_landmarks=12,
+            num_landmarks=6,
             file_name_win="Exp_control_noise_llandmark",
             exp_name="Exp_control_noise_llandmark",
         )
-
-    def test_good_case(self):
+    def test_measurement_noise_mean_mlandmark(self):
+        filters.MEASUREMENT_NOISE = lambda: np.array([20, 30, 0.2])
         run_experiments(
             self.track,
             num_landmarks=20,
-            file_name_win="Exp_Good_Case",
-            exp_name="Exp_Good_Case",
+            file_name_win="Exp_measurement_noise_mean_mlandmark",
+            exp_name="Exp_measurement_noise_mean_mlandmark",
         )
 
-    def test_less_landmarks(self):
+    def test_measurement_noise_mean_llandmark(self):
+        filters.MEASUREMENT_NOISE = lambda: np.array([20, 30, 0.2])
         run_experiments(
             self.track,
-            num_landmarks=8,
-            file_name_win="Exp_less_landmarks",
-            exp_name="Exp_less_landmarks",
+            num_landmarks=6,
+            file_name_win="Exp_measurement_noise_mean_llandmark",
+            exp_name="Exp_measurement_noise_mean_llandmark",
         )
+    ############################################################################################################
+    
+    def test_obs_noise_mlandmark_belowMN(self):
+        """ Sets the R value of kalamn filter """
 
-    def test_q_noise_mlandmark(self):
-        filters.Q = np.array([[1.3, 0, 0], [0, 4.9, 0], [0, 0, 12.33]])
-        filters.R = np.zeros((3, 3))
+        filters.MEASUREMENT_NOISE = lambda: np.array([5, 5, 0.01])
+        filters.R = np.array([[10.0, 0, 0], [0, 10.0, 0], [0, 0, 0.1]])
+
         run_experiments(
             self.track,
             num_landmarks=20,
-            file_name_win="Exp_q_noise_mlandmark",
-            exp_name="Exp_q_noise_mlandmark",
+            file_name_win="Exp_obs_noise_mlandmark_belowMN",
+            exp_name="Exp_obs_noise_mlandmark_belowMN",
         )
 
-    def test_q_noise_llandmark(self):
-        filters.Q = np.array([[1.3, 0, 0], [0, 4.9, 0], [0, 0, 12.33]])
-        filters.R = np.zeros((3, 3))
+    def test_obs_noise_mlandmark_aboveMN(self):
+        """ Sets the R + MEASUREMENT_NOISE value of kalamn filter """
+        filters.MEASUREMENT_NOISE = lambda: np.array([50, 50, 0.2])
+        filters.R = np.array([[10.0, 0, 0], [0, 10.0, 0], [0, 0, 0.1]])
         run_experiments(
             self.track,
-            num_landmarks=12,
-            file_name_win="Exp_q_noise_llandmark",
-            exp_name="Exp_q_noise_llandmark",
+            num_landmarks=20,
+            file_name_win="Exp_obs_noise_mlandmark_aboveMN",
+            exp_name="Exp_obs_noise_mlandmark_aboveMN",
         )
 
+    def test_obs_noise_llandmark_belowMN(self):
+        """ Sets the R value of kalamn filter """
+        
+        filters.MEASUREMENT_NOISE = lambda: np.array([5, 5, 0.01])
+        filters.R = np.array([[10.0, 0, 0], [0, 10.0, 0], [0, 0, 0.1]])
+        run_experiments(
+            self.track,
+            num_landmarks=6,
+            file_name_win="Exp_obs_noise_llandmark_belowMN",
+            exp_name="Exp_obs_noise_llandmark_belowMN",
+        )
+
+    def test_obs_noise_llandmark_aboveMN(self):
+        """ Sets the R + MEASUREMENT_NOISE value of kalamn filter """
+        
+        filters.MEASUREMENT_NOISE = lambda: np.array([50, 50, 0.2])
+        filters.R = np.array([[10.0, 0, 0], [0, 10.0, 0], [0, 0, 0.1]])
+        run_experiments(
+            self.track,
+            num_landmarks=6,
+            file_name_win="Exp_obs_noise_llandmark_aboveMN",
+            exp_name="Exp_obs_noise_llandmark_aboveMN",
+        )
+    ############################################################################################################
+    def test_process_noise_mlandmark_belowMN(self):
+        """ Sets the Q + CONTROL_NOISEvalue of kalamn filter """
+
+        filters.Q = np.array([[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]])
+        filters.CONTROL_NOISE = lambda controls: add_control_noise(
+            controls, alpha=[0.1, 0.1, 0.1, 0.1]
+        )
+
+        run_experiments(
+            self.track,
+            num_landmarks=20,
+            file_name_win="Exp_process_noise_mlandmark_belowMN",
+            exp_name="Exp_process_noise_mlandmark_belowMN",
+        )
+
+    def test_process_noise_mlandmark_aboveMN(self):
+        """ Sets the Q + MEASUREMENT_NOISE value of kalamn filter """
+        filters.Q = np.array([[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]])
+        filters.CONTROL_NOISE = lambda controls: add_control_noise(
+            controls, alpha=[0.6, 0.6, 0.6, 0.6]
+        )
+        run_experiments(
+            self.track,
+            num_landmarks=20,
+            file_name_win="Exp_process_noise_mlandmark_aboveMN",
+            exp_name="Exp_process_noise_mlandmark_aboveMN",
+        )
+
+    def test_process_noise_llandmark_belowMN(self):
+        """ Sets the Q value of kalamn filter """
+        
+        filters.Q = np.array([[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]])
+        filters.CONTROL_NOISE = lambda controls: add_control_noise(
+            controls, alpha=[0.1, 0.1, 0.1, 0.1]
+        )
+        run_experiments(
+            self.track,
+            num_landmarks=6,
+            file_name_win="Exp_process_noise_llandmark_belowMN",
+            exp_name="Exp_process_noise_llandmark_belowMN",
+        )
+
+    def test_process_noise_llandmark_aboveMN(self):
+        """ Sets the Q + MEASUREMENT_NOISE value of kalamn filter """
+        
+        filters.Q = np.array([[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]])
+        filters.CONTROL_NOISE = lambda controls: add_control_noise(
+            controls, alpha=[0.6, 0.6, 0.6, 0.6]
+        )
+        run_experiments(
+            self.track,
+            num_landmarks=6,
+            file_name_win="Exp_process_noise_llandmark_aboveMN",
+            exp_name="Exp_process_noise_llandmark_aboveMN",
+        )
 
 if __name__ == "__main__":
     # suite = unittest.TestSuite([Experiments("test_good_case"),Experiments("test_measurement_noise"),Experiments("test_sensor_noise"),Experiments("test_control_noise")])
     suite = unittest.TestSuite(
         [
-            Experiments("test_default_noise_mlandmark"),
-            Experiments("test_default_noise_llandmark"),
-            # Experiments("test_good_case"),
-            # Experiments("test_less_landmarks"),
+            # Experiments("test_default_noise_mlandmark"),
+            # Experiments("test_default_noise_llandmark"),
+
             # Experiments("test_zero_noise_mlandmark"),
             # Experiments("test_zero_noise_llandmark"),
-            # Experiments("test_measurement_noise_mlandmark"),
-            # Experiments("test_measurement_noise_llandmark"),
-            # Experiments("test_sensor_noise_llandmark"),
-            # Experiments("test_sensor_noise_mlandmark"),
+            
+            # Experiments("test_measurement_noise_mean_mlandmark"),
+            # Experiments("test_measurement_noise_mean_llandmark"),
+
             # Experiments("test_control_noise_mlandmark"),
             # Experiments("test_control_noise_llandmark"),
-            # Experiments("test_q_noise_mlandmark"),
-            # Experiments("test_q_noise_llandmark"),
+
+            # Experiments("test_obs_noise_mlandmark_belowMN"),
+            # Experiments("test_obs_noise_mlandmark_aboveMN"),
+
+            # Experiments("test_obs_noise_llandmark_belowMN"),
+            # Experiments("test_obs_noise_llandmark_aboveMN"),
+
+            Experiments("test_process_noise_mlandmark_belowMN"),
+            Experiments("test_process_noise_mlandmark_aboveMN"),
+
+            Experiments("test_process_noise_llandmark_belowMN"),
+            Experiments("test_process_noise_llandmark_aboveMN"),
+        
+            
         ]
     )
     runner = unittest.TextTestRunner()

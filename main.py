@@ -273,7 +273,7 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     pygame.draw.circle(environment_surface, (0, 0, 70), (agent.est_bel_pos_x, agent.est_bel_pos_y), 1)
     # print the belief cov matrix in every 100th iteration
     if time_step % 100 == 0:
-        draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale=100)
+        draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale=50)
 
     # detect landmarks
     # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
@@ -309,7 +309,7 @@ def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name
 
 
 save_s = True
-graph_plot = GraphGUI()
+graph_plot = None #GraphGUI()
 track_res = False
 
 if __name__ == "__main__":
