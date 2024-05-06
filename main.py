@@ -275,6 +275,7 @@ def run_simulation(
 
 
 def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name="Experiment RIJU"):
+    graph_plot = GraphGUI()
     run_saved_simulation(delta_t=1,
                          graphGUI=graph_plot,
                          track=track,
@@ -292,11 +293,11 @@ def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name
             f.write(f"Average Delta y: {round(np.mean(graph_plot.store2), 2)}\n")
             f.write(f"Average Delta theta: {round(np.mean(graph_plot.store3), 2)}\n")
         # Save figure plot
-        graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.svg")
+        graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.png")
 
 
 save_s = True
-graph_plot = None #GraphGUI()
+graph_plot = GraphGUI()
 track_res = False
 
 if __name__ == "__main__":

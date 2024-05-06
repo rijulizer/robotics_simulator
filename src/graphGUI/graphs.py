@@ -99,7 +99,7 @@ class GraphGUI:
         self.ah4.set_xlim(self.interval[self.start], self.interval[self.start + self.visible])
 
         # update start
-        self.start += 1
+        self.start += 10
 
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()

@@ -212,23 +212,23 @@ if __name__ == "__main__":
     # suite = unittest.TestSuite([Experiments("test_good_case"),Experiments("test_measurement_noise"),Experiments("test_sensor_noise"),Experiments("test_control_noise")])
     suite = unittest.TestSuite(
         [
-            # Experiments("test_default_noise_mlandmark"),
-            # Experiments("test_default_noise_llandmark"),
+            Experiments("test_default_noise_mlandmark"),
+            Experiments("test_default_noise_llandmark"),
 
-            # Experiments("test_zero_noise_mlandmark"),
-            # Experiments("test_zero_noise_llandmark"),
+            Experiments("test_zero_noise_mlandmark"),
+            Experiments("test_zero_noise_llandmark"),
             
-            # Experiments("test_measurement_noise_mean_mlandmark"),
-            # Experiments("test_measurement_noise_mean_llandmark"),
+            Experiments("test_measurement_noise_mean_mlandmark"),
+            Experiments("test_measurement_noise_mean_llandmark"),
 
-            # Experiments("test_control_noise_mlandmark"),
-            # Experiments("test_control_noise_llandmark"),
+            Experiments("test_control_noise_mlandmark"),
+            Experiments("test_control_noise_llandmark"),
 
-            # Experiments("test_obs_noise_mlandmark_belowMN"),
-            # Experiments("test_obs_noise_mlandmark_aboveMN"),
+            Experiments("test_obs_noise_mlandmark_belowMN"),
+            Experiments("test_obs_noise_mlandmark_aboveMN"),
 
-            # Experiments("test_obs_noise_llandmark_belowMN"),
-            # Experiments("test_obs_noise_llandmark_aboveMN"),
+            Experiments("test_obs_noise_llandmark_belowMN"),
+            Experiments("test_obs_noise_llandmark_aboveMN"),
 
             Experiments("test_process_noise_mlandmark_belowMN"),
             Experiments("test_process_noise_mlandmark_aboveMN"),

@@ -1,0 +1,4 @@
+Experiment Name: Exp_measurement_noise_mean_llandmark
+Average Delta x: 628.0
+Average Delta y: 1051.89
+Average Delta theta: 427.3
