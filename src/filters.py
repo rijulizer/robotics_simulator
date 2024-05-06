@@ -1,8 +1,8 @@
 import numpy as np
 
 C = np.identity(3)
-Q = np.abs(np.diag(np.random.normal(1,1,3)))
-R = np.abs(np.diag(np.random.normal(1,1,3)))
+Q = np.abs(np.diag(np.random.normal(0,1,3)))
+R = np.abs(np.diag(np.random.normal(0,1,3)))
 
 # default global parameters
 MEASUREMENT_NOISE = lambda: np.zeros(3)
@@ -46,7 +46,6 @@ def kalman_filter(mean, cov, controls, measurements, delta_t):
     # Kalman gain
     K = np.matmul(np.matmul(pred_cov, np.transpose(C)),
                   np.linalg.inv(np.matmul(np.matmul(C, pred_cov), np.transpose(C)) + Q))
-    K = np.matmul(np.matmul(pred_cov, np.transpose(C)), np.linalg.inv(np.matmul(np.matmul(C, pred_cov), np.transpose(C)) + Q))
     # update the mean
     mean = pred_mean + np.matmul(K, measurements - np.matmul(C, pred_mean))
     # update covariance matrix

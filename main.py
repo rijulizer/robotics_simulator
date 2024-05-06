@@ -6,7 +6,6 @@ from src.engine import simulate
 from src.utils import draw_belief_ellipse
 from src.graphGUI.graphs import GraphGUI
 import pickle as pkl
-from multiprocessing import Process
 import numpy as np
 import logging
 
@@ -296,8 +295,8 @@ def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name
         graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.svg")
 
 
-save_s = False
-graph_plot = GraphGUI()
+save_s = True
+graph_plot = None #GraphGUI()
 track_res = False
 
 if __name__ == "__main__":
