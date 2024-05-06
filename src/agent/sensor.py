@@ -216,8 +216,6 @@ class SensorManager:
             # case -2
             if range_i <= self.sensor_length + self.radius:
                 bear_i = atan2(landmark["x"] - self.pos_x, landmark["y"] - self.pos_y) - self.theta
-                #TODO: Bearing can also be calculated from sensor angle of the particular sensor
-                # append the range and bear information along with the cordinates and signature of the beacon
 
                 time = next(
                     (i["time_step"] for i in self.detected_landmarks if i["signature"] == landmark["signature"]),

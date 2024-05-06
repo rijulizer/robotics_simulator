@@ -217,7 +217,7 @@ if __name__ == "__main__":
 
             Experiments("test_zero_noise_mlandmark"),
             Experiments("test_zero_noise_llandmark"),
-            
+
             Experiments("test_measurement_noise_mean_mlandmark"),
             Experiments("test_measurement_noise_mean_llandmark"),
 
@@ -235,8 +235,6 @@ if __name__ == "__main__":
 
             Experiments("test_process_noise_llandmark_belowMN"),
             Experiments("test_process_noise_llandmark_aboveMN"),
-        
-            
         ]
     )
     runner = unittest.TextTestRunner()

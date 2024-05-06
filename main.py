@@ -12,6 +12,7 @@ import logging
 # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 logging.basicConfig(level=logging.ERROR, format='%(levelname)s - %(message)s')
 
+
 def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font):
     # Fill the window with white
     win.fill((255, 255, 255))
@@ -274,17 +275,16 @@ def run_simulation(
     pygame.quit()
 
 
-def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name="Experiment RIJU"):
-    graph_plot = GraphGUI()
+def run_experiments(track, num_landmarks=8, file_name_win="Experiment_Draft", exp_name="Experiment_Draft"):
+    graph_plot = GraphGUI() # Graph plot - GraphGUI() or None
     run_saved_simulation(delta_t=1,
                          graphGUI=graph_plot,
                          track=track,
                          num_landmarks=num_landmarks,
                          file_name_win=file_name_win)
 
-    # Show simulation in milliseconds
     print("Simulation completed successfully")
-    # Write in .txt file with the average values of delta x, delta y, delta theta, also in he top is the name of experiments
+    # Write in .txt file with name of experiments and the average values of delta x, delta y, delta theta
     if graph_plot and save_s:
         print(len(graph_plot.store1))
         with open(f'./src/experiments_data/{exp_name}_results.txt', 'w') as f:
@@ -292,13 +292,12 @@ def run_experiments(track, num_landmarks=8, file_name_win="Experiment", exp_name
             f.write(f"Average Delta x: {round(np.mean(graph_plot.store1), 2)}\n")
             f.write(f"Average Delta y: {round(np.mean(graph_plot.store2), 2)}\n")
             f.write(f"Average Delta theta: {round(np.mean(graph_plot.store3), 2)}\n")
-        # Save figure plot
+        # Save figure plot[
         graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.png")
 
 
-save_s = True
-graph_plot = GraphGUI()
-track_res = False
+save_s = False  # False or True (True - Run the simulation with saved trajectory data)
+track_res = False  # False or True (True - Save the trajectory data)
 
 if __name__ == "__main__":
     # Start Timer for the simulation with python in build function
@@ -311,4 +310,4 @@ if __name__ == "__main__":
         # Run save simulation
         with open("tracker.pkl", "rb") as f:
             track = pkl.load(f)
-        run_experiments(track, file_name_win="Experiment1", exp_name="Experiment RIJU")
+        run_experiments(track, file_name_win="Experiment_Draft", exp_name="Experiment_Draft")
