@@ -6,6 +6,7 @@ from src.engine import simulate
 from src.utils import draw_belief_ellipse
 from src.graphGUI.graphs import GraphGUI
 import pickle as pkl
+from multiprocessing import Process
 import numpy as np
 import logging
 
@@ -71,13 +72,20 @@ def run_saved_simulation(
 
     freeze = False
     time_step = 0
+    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
     for vl, vr in track:
         pygame.time.delay(1)
 
+        flag = False
         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                flag = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     freeze = not freeze
+
+        if flag:
+            break
 
         while freeze:
             pygame.time.delay(25)
@@ -106,12 +114,18 @@ def run_saved_simulation(
 
         # update the graph
         if graphGUI:
-            delta_x = abs(agent.pos_x - agent.bel_pos_x)
-            delta_y = abs(agent.pos_y - agent.bel_pos_y)
-            delta_theta = abs(agent.theta - agent.bel_theta)
-            graphGUI.update_plot({"delta_x": delta_x,
-                                  "delta_y": delta_y,
-                                  "delta_theta": delta_theta})
+            delta_x.append(abs(agent.pos_x - agent.bel_pos_x))
+            delta_y.append(abs(agent.pos_y - agent.bel_pos_y))
+            delta_theta.append(abs(agent.theta - agent.bel_theta))
+            vl_list.append(vl)
+            vr_list.append(vr)
+            if time_step % 10 == 0:
+                graphGUI.update_plot({"vl": vl_list,
+                                      "vr": vr_list,
+                                      "delta_x": delta_x,
+                                      "delta_y": delta_y,
+                                      "delta_theta": delta_theta})
+                delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
 
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
 
@@ -181,6 +195,7 @@ def run_simulation(
     freeze = False
     time_step = 0
     tracker = []
+    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
     while sim_run:
         pygame.time.delay(25)
 
@@ -228,12 +243,18 @@ def run_simulation(
 
             # update the graph
             if graphGUI:
-                delta_x = abs(agent.pos_x - agent.bel_pos_x)
-                delta_y = abs(agent.pos_y - agent.bel_pos_y)
-                delta_theta = abs(agent.theta - agent.bel_theta)
-                graphGUI.update_plot({"delta_x": delta_x,
-                                      "delta_y": delta_y,
-                                      "delta_theta": delta_theta})
+                delta_x.append(abs(agent.pos_x - agent.bel_pos_x))
+                delta_y.append(abs(agent.pos_y - agent.bel_pos_y))
+                delta_theta.append(abs(agent.theta - agent.bel_theta))
+                vl_list.append(vl)
+                vr_list.append(vr)
+                if time_step % 10 == 0:
+                    graphGUI.update_plot({"vl": vl_list,
+                                          "vr": vr_list,
+                                          "delta_x": delta_x,
+                                          "delta_y": delta_y,
+                                          "delta_theta": delta_theta})
+                    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
 
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
 
