@@ -6,7 +6,7 @@ matplotlib.use('Qt5Agg')  # Set the backend to Qt5
 import matplotlib.pyplot as plt
 from collections import deque
 
-
+# Reference: https://towardsdatascience.com/dynamic-replay-of-time-series-data-819e27212b4b
 class GraphGUI:
 
     def __init__(self):
