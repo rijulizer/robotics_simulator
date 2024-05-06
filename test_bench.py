@@ -1,5 +1,7 @@
 import numpy as np
 import unittest
+
+import main
 from main import run_experiments
 import src.filters as filters
 from src.utils import add_control_noise

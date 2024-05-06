@@ -275,8 +275,17 @@ def run_simulation(
     pygame.quit()
 
 
-def run_experiments(track, num_landmarks=8, file_name_win="Experiment_Draft", exp_name="Experiment_Draft"):
-    graph_plot = GraphGUI() # Graph plot - GraphGUI() or None
+def run_experiments(track,
+                    num_landmarks=8,
+                    file_name_win="Experiment_Draft",
+                    exp_name="Experiment_Draft",
+                    plot_graph=True):
+
+    if plot_graph:
+        graph_plot = GraphGUI()
+    else:
+        graph_plot = None
+
     run_saved_simulation(delta_t=1,
                          graphGUI=graph_plot,
                          track=track,
@@ -296,10 +305,15 @@ def run_experiments(track, num_landmarks=8, file_name_win="Experiment_Draft", ex
         graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.png")
 
 
-save_s = False  # False or True (True - Run the simulation with saved trajectory data)
+save_s = True  # False or True (True - Run the simulation with saved trajectory data)
+plot_graph = False  # False or True (True - Plot the graph)
 track_res = False  # False or True (True - Save the trajectory data)
 
 if __name__ == "__main__":
+    if plot_graph:
+        graph_plot = GraphGUI()
+    else:
+        graph_plot = None
     # Start Timer for the simulation with python in build function
     if not save_s:
         run_simulation(delta_t=1,
@@ -310,4 +324,7 @@ if __name__ == "__main__":
         # Run save simulation
         with open("tracker.pkl", "rb") as f:
             track = pkl.load(f)
-        run_experiments(track, file_name_win="Experiment_Draft", exp_name="Experiment_Draft")
+        run_experiments(track,
+                        file_name_win="Experiment_Draft",
+                        exp_name="Experiment_Draft",
+                        plot_graph=plot_graph)
