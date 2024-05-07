@@ -125,7 +125,8 @@ class SensorManager:
         self.sensors = []
         self.object_list = sim_object_list
         self.detected_landmarks = []
-        
+        self.map_landmarks = {}
+        self.map_env_points = []
         # initialize the sensorlines
         for i in range(self.num_sensors):
             sl = SensorLine(agent_stats,
@@ -145,11 +146,15 @@ class SensorManager:
         self.agent_pos_y = agent_stats["pos_y"]
         self.agent_radius = agent_stats["radius"]
         self.agent_theta = agent_stats["theta"]
+        self.map_env_points = []
         # udpate each sensor line related info
         for s in self.sensors:
             s.get_object_distance(self.object_list)
             # print(f"Sendor: ", s.index)
             s.update_sensor(agent_stats)
+            # get the env points as the intersecation points each time it updates
+            if s.intersec_pts:
+                self.map_env_points.append((round(s.intersec_pts[0], 2), round(s.intersec_pts[1], 2)))
     
     def draw(self,
              surface: Surface,
@@ -198,7 +203,14 @@ class SensorManager:
                     "bearing": bear_i,
                     "time_step": time
                 })
+                self.map_landmarks[landmark["signature"]] = {
+                        "x": landmark["x"],
+                        "y": landmark["y"],
+                        "signature": landmark["signature"],
+                        "range": range_i,
+                        "bearing": bear_i,
+                        "time_step": time
+                    }
         self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
-        print(len(self.detected_landmarks))
 
         

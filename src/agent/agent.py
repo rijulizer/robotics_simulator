@@ -7,7 +7,13 @@ from src.utils import circle_intersectoins, atan2, add_control_noise
 from src.filters import kalman_filter
 
 HANDLE_SENSORDATA_MEMORIZE = True
-
+GLOBAL_SCALE = 50
+WIN_LENGTH = 1200
+WIN_HEIGHT = 800
+ENV_OFFSET_X = 20
+ENV_OFFSET_Y = 200
+MAP_OFFSET_X = WIN_LENGTH // 2 + ENV_OFFSET_X
+MAP_OFFSET_Y = 0
 class Agent:
     def __init__(self,
                  pos_x: float,
@@ -39,7 +45,10 @@ class Agent:
         self.guided_line = None
 
         self.bel_cov = np.diag(np.random.rand(3))
-        self.map = {}
+        self.map = {
+            'landmarks': [], 
+            'env_points': []
+            }
 
     def standard_move(self,
                       vl: float,
@@ -254,10 +263,22 @@ class Agent:
         self.est_bel_pos_x = pred_mean[0]
         self.est_bel_pos_y = pred_mean[1]
     
-    # def create_map(self):
-
-    #     self.map['landmarks'] = list(set(self.sensor_manager.detected_landmarks))
-    #     self.map['env_points'] = 
+    def create_map(self, surface):
+        # get the landmarks
+        self.map['landmarks'] = self.sensor_manager.map_landmarks
+        # get the environment points as the agent moves
+        #TODO: the agent covariances matrix should affect this
+        self.map['env_points'].extend(self.sensor_manager.map_env_points) 
+        self.map['env_points'] = list(set(self.map['env_points']))
+        print(f"[debug] Map: {len(self.map['landmarks']), len(self.map['env_points'])}")
+        
+        # draw map landmarks
+        for landmark in self.map['landmarks'].values():
+            pygame.draw.circle(surface, (76, 36, 223), (MAP_OFFSET_X + landmark['x'], MAP_OFFSET_Y + landmark['y']), 6)
+        # draw map env points
+        for point in self.map['env_points']:
+            pygame.draw.circle(surface, (22, 132, 233), (MAP_OFFSET_X + point[0], MAP_OFFSET_Y + point[1]), 3)
+        
 # if __name__ == "__main__":
 #     # define agent
 #     pos_x = 200

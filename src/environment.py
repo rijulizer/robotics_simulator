@@ -1,7 +1,11 @@
 import pygame
 import numpy as np
 
-
+GLOBAL_SCALE = 50
+WIN_LENGTH = 1200
+WIN_HEIGHT = 800
+ENV_OFFSET_X = 20
+ENV_OFFSET_Y = 200
 class Line:
     def __init__(self, win, startX, startY, endX, endY):
         self.body = pygame.draw.line(win, (0, 0, 0), (startX, startY), (endX, endY), width=5)
@@ -21,11 +25,11 @@ class Environment:
         self.landmarks = None
         self.line_list = []
         # define environment
-        border_x = 100
-        border_y = 100
-        border_len = 800
-        border_height = 600
-        border_width = 5
+        border_x = ENV_OFFSET_X
+        border_y = ENV_OFFSET_Y
+        border_len = WIN_LENGTH // 2 - int(WIN_LENGTH * 0.1)
+        border_height = WIN_HEIGHT // 2 - int(WIN_LENGTH * 0.1)
+        border_width = GLOBAL_SCALE // 20
         # define obstacle line-1
         line_1_start_pos_x = border_x + int(border_len / 4)
         line_1_end_pos_x = border_x + int(border_len / 4)
@@ -87,7 +91,7 @@ class Environment:
         random_points = self.points[np.random.choice(self.points.shape[0], number_of_landmarks, replace=False), :]
         self.landmarks = []
         for i, point in enumerate(random_points):
-            pygame.draw.circle(win, (255, 0, 0), (point[0], point[1]), 7)
+            pygame.draw.circle(win, (255, 0, 0), (point[0], point[1]), 5)
             # add signatures to the landmarks
             self.landmarks.append({
                 "signature": i,

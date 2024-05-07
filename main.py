@@ -11,6 +11,11 @@ import logging
 # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 logging.basicConfig(level=logging.ERROR, format='%(levelname)s - %(message)s')
 
+GLOBAL_SCALE = 50
+WIN_LENGTH = 1200
+WIN_HEIGHT = 800
+ENV_OFFSET_X = 20
+ENV_OFFSET_Y = 200
 
 def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font):
     # Fill the window with white
@@ -37,10 +42,12 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     # Agent trajectory
     pygame.draw.circle(environment_surface, (34, 139, 34), (agent.pos_x, agent.pos_y), 2)
     pygame.draw.circle(environment_surface, (240, 90, 90), (agent.bel_pos_x, agent.bel_pos_y), 2)
-    pygame.draw.circle(environment_surface, (0, 0, 70), (agent.est_bel_pos_x, agent.est_bel_pos_y), 1)
+    # pygame.draw.circle(environment_surface, (0, 0, 70), (agent.est_bel_pos_x, agent.est_bel_pos_y), 1)
     # print the belief cov matrix in every 100th iteration
     if time_step % 100 == 0:
-        draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale=100)
+        draw_belief_ellipse(environment_surface, agent.bel_cov, agent.bel_pos_x, agent.bel_pos_y, scale= 0.5 * GLOBAL_SCALE)
+    if time_step % 50 == 0:
+        agent.create_map(environment_surface)
 
     # detect landmarks
     # detected_landmarks = agent.sensor_manager.scan_landmarks(env.landmarks)
@@ -57,10 +64,9 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
 def _init_GUI(num_landmarks):
     # initialize
     pygame.init()
-
     # Create window
-    win_length = 1000
-    win_height = 800
+    win_length = WIN_LENGTH
+    win_height = WIN_HEIGHT
     win = pygame.display.set_mode((win_length, win_height))
     pygame.display.set_caption("Robotics Simulation")
     # Fonts
@@ -74,13 +80,13 @@ def _init_GUI(num_landmarks):
     # put landmarks on the environment
     env.put_landmarks(environment_surface, num_landmarks)
     # define agent
-    pos_x = 200
-    pos_y = 200
-    radius = 30
+    pos_x = ENV_OFFSET_X + 1 * GLOBAL_SCALE
+    pos_y = ENV_OFFSET_Y + 1 * GLOBAL_SCALE
+    radius = 0.3 * GLOBAL_SCALE
     theta = 0
 
     number_sensors = 12
-    sensor_length = 150
+    sensor_length = 1.5 * GLOBAL_SCALE
 
     agent = Agent(pos_x, pos_y, radius, theta)
 
@@ -98,68 +104,6 @@ def _init_GUI(num_landmarks):
     # logging.debug(f"Detected Landmarks: {detected_landmarks}")
 
     return win, environment_surface, agent, font, env
-
-
-def run_saved_simulation(
-        delta_t: float,
-        track: list,
-        num_landmarks: int = 20,
-        file_name_win: str = "Experiment"
-):
-    if track is None or len(track) == 0:
-        raise ValueError("No track data found")
-
-    # initialize
-    win, environment_surface, agent, font, env = _init_GUI(num_landmarks)
-
-    # Define variables
-    delta_t_max = delta_t
-    delta_t_curr = delta_t_max
-
-    freeze = False
-    time_step = 0
-    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
-    for vl, vr in track:
-        pygame.time.delay(1)
-
-        flag = False
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                flag = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    freeze = not freeze
-
-        if flag:
-            break
-
-        while freeze:
-            pygame.time.delay(25)
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        freeze = not freeze
-
-        # core logic starts here
-        success = simulate(agent,
-                           vr,
-                           vl,
-                           delta_t_curr,
-                           env.line_list,
-                           env.landmarks,
-                           time_step
-                           )
-
-        if not success:
-            delta_t_curr -= 0.1
-        else:
-            delta_t_curr = delta_t_max
-
-        # update the time ste
-        time_step += 1
-
-        pygame.quit()
-
 
 def run_simulation(
         delta_t: float,
@@ -240,49 +184,15 @@ def run_simulation(
     pygame.quit()
 
 
-def run_experiments(track,
-                    num_landmarks=8,
-                    file_name_win="Experiment_Draft",
-                    exp_name="Experiment_Draft",
-                    plot_graph=True):
-
-    
-    graph_plot = None
-
-    run_saved_simulation(delta_t=1,
-                         track=track,
-                         num_landmarks=num_landmarks,
-                         file_name_win=file_name_win)
-
-    print("Simulation completed successfully")
-    # Write in .txt file with name of experiments and the average values of delta x, delta y, delta theta
-    if graph_plot and save_s:
-        print(len(graph_plot.store1))
-        with open(f'./src/experiments_data/{exp_name}_results.txt', 'w') as f:
-            f.write(f"Experiment Name: {exp_name}\n")
-            f.write(f"Average Delta x: {round(np.mean(graph_plot.store1), 2)}\n")
-            f.write(f"Average Delta y: {round(np.mean(graph_plot.store2), 2)}\n")
-            f.write(f"Average Delta theta: {round(np.mean(graph_plot.store3), 2)}\n")
-        # Save figure plot[
-        graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.png")
-
-
-save_s = False  # False or True (True - Run the simulation with saved trajectory data)
-plot_graph = False  # False or True (True - Plot the graph)
-track_res = False  # False or True (True - Save the trajectory data)
 
 if __name__ == "__main__":
+    save_s = False  # False or True (True - Run the simulation with saved trajectory data)
+    plot_graph = False  # False or True (True - Plot the graph)
+    track_res = False  # False or True (True - Save the trajectory data)
     graph_plot = None
     # Start Timer for the simulation with python in build function
-    if not save_s:
-        run_simulation(delta_t=1,
-                       track=track_res,
-                       num_landmarks=8)
-    else:
-        # Run save simulation
-        with open("tracker.pkl", "rb") as f:
-            track = pkl.load(f)
-        run_experiments(track,
-                        file_name_win="Experiment_Draft",
-                        exp_name="Experiment_Draft",
-                        plot_graph=plot_graph)
+    run_simulation(
+        delta_t=1,
+        track=track_res,
+        num_landmarks=10,
+        )
