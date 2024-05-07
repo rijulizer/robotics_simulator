@@ -2,6 +2,7 @@ import numpy as np
 from src.environment import Line
 import sympy as sp
 import pygame
+from shapely.geometry import LineString
 
 def euclidean_distance(x1, y1, x2, y2):
     """
@@ -357,21 +358,4 @@ def line_line_intersections(line1, line2):
     else:
         return None
 
-from shapely.geometry import LineString
 
-def find_intersection(line1, line2):
-    
-    line1 = LineString(line1)
-    line2 = LineString(line2)
-    
-    intersection = line1.intersection(line2)
-
-    if intersection.is_empty:
-        return None
-    elif intersection.geom_type == 'Point':
-        return intersection.x, intersection.y
-    elif intersection.geom_type == 'MultiPoint':
-        # If there are multiple intersection points, return the first one
-        return intersection[0].x, intersection[0].y
-    else:
-        return None

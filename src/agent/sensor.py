@@ -45,7 +45,10 @@ class SensorLine:
         self.text_surface = self.pygame_font.render(self.sensor_text, False, (0, 0, 0))
     
     def get_object_distance(self, object_list):
-        """Calculates the length of the point of intersection"""
+        """Calculates the point of intersection, and the distance between the sensor line and the wall
+        Args:
+            object_list (list): [Part of simulation] The object list to check the collision of sensor points against the wall.
+        """
         self.wall_dist = None
         min_dist = self.sensor_length
         for line in object_list:
@@ -70,7 +73,10 @@ class SensorLine:
                     self.intersec_pts = intersec_pts
                     self.wall_dist = min_dist
     def update_sensor(self, agent_stats):
-
+        """Update the sensor line information needed for drawing the sensor line
+        Args:
+            agent_stats (dict): agent stats
+        """
         self.agent_pos_x = agent_stats["pos_x"]
         self.agent_pos_y = agent_stats["pos_y"]
 
@@ -78,20 +84,18 @@ class SensorLine:
         self.f_theta = self.theta + self.robot_theta
         self.start_x = self.agent_pos_x + self.radius * np.cos(self.f_theta)
         self.start_y = self.agent_pos_y + self.radius * np.sin(self.f_theta)
-        
+        # if the sensor line intersects with the wall
         if self.wall_dist:
             self.end_x = self.intersec_pts[0]
             self.end_y = self.intersec_pts[1]
             self.sensor_text = str(round(self.wall_dist,1))
+        # if the sensor line does not intersect with the wall
         else:
             self.end_x = self.agent_pos_x + self.sensor_length * np.cos(self.f_theta)
             self.end_y = self.agent_pos_y + self.sensor_length * np.sin(self.f_theta)
             self.sensor_text = str(self.sensor_length)
         
         self.text_surface = self.pygame_font.render(self.sensor_text, False, (0, 0, 0))
-
-    
-
 
 class SensorManager:
     def __init__(self,
@@ -120,7 +124,6 @@ class SensorManager:
         
         self.sensors = []
         self.object_list = sim_object_list
-        self.previous_sensor_collision = False
         self.detected_landmarks = []
         
         # initialize the sensorlines
@@ -131,34 +134,6 @@ class SensorManager:
                             i)
             self.sensors.append(sl)
 
-
-    def scan_landmarks(self,
-                       landmarks: list,
-                       time_step: int
-                       ):
-        """Scan the landmarks in the environment and get the range and bearing information"""
-        
-        detected_landmarks = []
-        # iterate through all sensors and lands marks and check if the landmark point lies on the sensor line
-        for landmark in landmarks:
-            range_i = euclidean_distance(self.agent_pos_x, self.agent_pos_y, landmark["x"], landmark["y"])
-            if range_i <= self.sensor_length + self.agent_radius:
-                bear_i = atan2(landmark["x"] - self.agent_pos_x, landmark["y"] - self.agent_pos_y) - self.agent_theta
-
-                time = next(
-                    (i["time_step"] for i in self.detected_landmarks if i["signature"] == landmark["signature"]),
-                    time_step)
-
-                detected_landmarks.append({
-                    "x": landmark["x"],
-                    "y": landmark["y"],
-                    "signature": landmark["signature"],
-                    "range": range_i,
-                    "bearing": bear_i,
-                    "time_step": time
-                })
-        self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
-    
     def update(
             self, 
             agent_stats: dict):
@@ -166,6 +141,11 @@ class SensorManager:
         Args:
             agent_stats (dict): agent stats
         """
+        self.agent_pos_x = agent_stats["pos_x"]
+        self.agent_pos_y = agent_stats["pos_y"]
+        self.agent_radius = agent_stats["radius"]
+        self.agent_theta = agent_stats["theta"]
+        # udpate each sensor line related info
         for s in self.sensors:
             s.get_object_distance(self.object_list)
             # print(f"Sendor: ", s.index)
@@ -175,6 +155,11 @@ class SensorManager:
              surface: Surface,
              agent_stats: dict,
              ):
+        """Draw the sensor lines on the screen
+        Args:
+            surface (Surface): The surface to draw the sensor lines on
+            agent_stats (dict): agent stats
+        """
         self.update(agent_stats)
         # self.update_sensor_status()
         for s in self.sensors:
@@ -189,4 +174,31 @@ class SensorManager:
             # Draw the text on the sensor line
             surface.blit(s.text_surface, (s.end_x, s.end_y))
 
-    
+    def scan_landmarks(self,
+                       landmarks: list,
+                       time_step: int
+                       ):
+        """Scan the landmarks in the environment and get the range and bearing information"""
+        
+        detected_landmarks = []
+        # iterate through all sensors and lands marks and check if the landmark point lies on the sensor line
+        for landmark in landmarks:
+            range_i = euclidean_distance(self.agent_pos_x, self.agent_pos_y, landmark["x"], landmark["y"])
+            if range_i <= self.sensor_length:
+                bear_i = atan2(landmark["x"] - self.agent_pos_x, landmark["y"] - self.agent_pos_y) - self.agent_theta
+                time = next(
+                    (i["time_step"] for i in self.detected_landmarks if i["signature"] == landmark["signature"]),
+                    time_step)
+                time =  0
+                detected_landmarks.append({
+                    "x": landmark["x"],
+                    "y": landmark["y"],
+                    "signature": landmark["signature"],
+                    "range": range_i,
+                    "bearing": bear_i,
+                    "time_step": time
+                })
+        self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
+        print(len(self.detected_landmarks))
+
+        
