@@ -81,7 +81,7 @@ def simulate(agent: Agent,
             result = False
 
     # Detect landmarks
-    agent.sensor_manager.update_agent_sensor_info(agent.get_agent_stats())
+    # agent.sensor_manager.update_agent_sensor_info(agent.get_agent_stats())
     agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
 
     # Apply filter

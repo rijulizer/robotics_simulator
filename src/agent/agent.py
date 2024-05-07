@@ -39,6 +39,7 @@ class Agent:
         self.guided_line = None
 
         self.bel_cov = np.diag(np.random.rand(3))
+        self.map = {}
 
     def standard_move(self,
                       vl: float,
@@ -194,7 +195,7 @@ class Agent:
         self.line = pygame.draw.line(surface, (0, 0, 0), (self.pos_x, self.pos_y), (x_end, y_end),
                                      width=int(self.radius / 10))
         # Draw sensor lines
-        self.sensor_manager.draw(surface)
+        self.sensor_manager.draw(surface, self.get_agent_stats())
 
         # Guided Line near the walls
         # if self.guided_line:
@@ -252,7 +253,11 @@ class Agent:
         self.bel_cov = cov
         self.est_bel_pos_x = pred_mean[0]
         self.est_bel_pos_y = pred_mean[1]
+    
+    # def create_map(self):
 
+    #     self.map['landmarks'] = list(set(self.sensor_manager.detected_landmarks))
+    #     self.map['env_points'] = 
 # if __name__ == "__main__":
 #     # define agent
 #     pos_x = 200

@@ -1,4 +1,0 @@
-Experiment Name: Exp_obs_noise_llandmark_aboveMN
-Average Delta x: 2652.4
-Average Delta y: 2725.08
-Average Delta theta: 427.3

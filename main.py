@@ -4,7 +4,6 @@ from src.agent.sensor import SensorManager
 from src.environment import Environment
 from src.engine import simulate
 from src.utils import draw_belief_ellipse
-from src.graphGUI.graphs import GraphGUI
 import pickle as pkl
 import numpy as np
 import logging
@@ -103,7 +102,6 @@ def _init_GUI(num_landmarks):
 
 def run_saved_simulation(
         delta_t: float,
-        graphGUI: GraphGUI,
         track: list,
         num_landmarks: int = 20,
         file_name_win: str = "Experiment"
@@ -160,30 +158,11 @@ def run_saved_simulation(
         # update the time ste
         time_step += 1
 
-        # update the graph
-        if graphGUI:
-            delta_x.append(abs(agent.pos_x - agent.bel_pos_x))
-            delta_y.append(abs(agent.pos_y - agent.bel_pos_y))
-            delta_theta.append(abs(agent.theta - agent.bel_theta))
-            vl_list.append(vl)
-            vr_list.append(vr)
-            if time_step % 10 == 0:
-                graphGUI.update_plot({"vl": vl_list,
-                                      "vr": vr_list,
-                                      "delta_x": delta_x,
-                                      "delta_y": delta_y,
-                                      "delta_theta": delta_theta})
-                delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
-
-        draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
-
-    pygame.image.save(win, "./src/experiments_data/" + file_name_win + ".png")
-    pygame.quit()
+        pygame.quit()
 
 
 def run_simulation(
         delta_t: float,
-        graphGUI: GraphGUI,
         track: bool = False,
         num_landmarks: int = 20
 ):
@@ -250,21 +229,7 @@ def run_simulation(
             if track:
                 tracker.append((vl, vr))
 
-            # update the graph
-            if graphGUI:
-                delta_x.append(abs(agent.pos_x - agent.bel_pos_x))
-                delta_y.append(abs(agent.pos_y - agent.bel_pos_y))
-                delta_theta.append(abs(agent.theta - agent.bel_theta))
-                vl_list.append(vl)
-                vr_list.append(vr)
-                if time_step % 10 == 0:
-                    graphGUI.update_plot({"vl": vl_list,
-                                          "vr": vr_list,
-                                          "delta_x": delta_x,
-                                          "delta_y": delta_y,
-                                          "delta_theta": delta_theta})
-                    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
-
+            
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font)
 
     # save the tracker
@@ -281,13 +246,10 @@ def run_experiments(track,
                     exp_name="Experiment_Draft",
                     plot_graph=True):
 
-    if plot_graph:
-        graph_plot = GraphGUI()
-    else:
-        graph_plot = None
+    
+    graph_plot = None
 
     run_saved_simulation(delta_t=1,
-                         graphGUI=graph_plot,
                          track=track,
                          num_landmarks=num_landmarks,
                          file_name_win=file_name_win)
@@ -305,19 +267,15 @@ def run_experiments(track,
         graph_plot.fig.savefig(f"./src/experiments_data/{exp_name}_graph.png")
 
 
-save_s = True  # False or True (True - Run the simulation with saved trajectory data)
+save_s = False  # False or True (True - Run the simulation with saved trajectory data)
 plot_graph = False  # False or True (True - Plot the graph)
 track_res = False  # False or True (True - Save the trajectory data)
 
 if __name__ == "__main__":
-    if plot_graph:
-        graph_plot = GraphGUI()
-    else:
-        graph_plot = None
+    graph_plot = None
     # Start Timer for the simulation with python in build function
     if not save_s:
         run_simulation(delta_t=1,
-                       graphGUI=graph_plot,
                        track=track_res,
                        num_landmarks=8)
     else:

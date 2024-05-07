@@ -1,10 +1,10 @@
-import math
 import numpy as np
 from pygame import Surface
 import pygame
+from sympy import Point, Line
 import logging
 
-from src.utils import seg_intersect, euclidean_distance, atan2, point_on_line, circle_line_intersection
+from src.utils import euclidean_distance, atan2, line_line_intersections
 
 
 class SensorLine:
@@ -22,200 +22,128 @@ class SensorLine:
             sensor_length (float): length of the sensor line segment
             i (int): unique index(identifier) of the sensor
         """
-        self.pos_x = agent_stats["pos_x"]
-        self.pos_y = agent_stats["pos_y"]
+
+        self.agent_pos_x = agent_stats["pos_x"]
+        self.agent_pos_y = agent_stats["pos_y"]
         self.radius = agent_stats["radius"]
         self.robot_theta = agent_stats["theta"]
-
         self.index = i
         self.theta = theta
         self.f_theta = theta + self.robot_theta
         self.sensor_length = sensor_length
+        self.intersec_pts = None
+        self.wall_dist = self.sensor_length + self.radius # intialize the distance to the sensor length
         self.body = None
-        self.intersection_pt = []
+        # for drawing the sensor line
+        self.start_x = self.agent_pos_x + self.radius * np.cos(self.f_theta)
+        self.start_y = self.agent_pos_y + self.radius * np.sin(self.f_theta)
+        self.end_x = self.agent_pos_x + self.sensor_length * np.cos(self.f_theta)
+        self.end_y = self.agent_pos_y + self.sensor_length * np.sin(self.f_theta)
 
-    def get_intersection_pt(self,
-                            robot_pt: list,
-                            line_pt1: np.ndarray,
-                            line_pt2: np.ndarray
-                            ):
-        """Calculates the length of the sensor coordinates from the start to the point of intersection
-           with a wall.
+        self.pygame_font = pygame.font.SysFont('Comic Sans MS', 12)
+        self.sensor_text = str(self.sensor_length)
+        self.text_surface = self.pygame_font.render(self.sensor_text, False, (0, 0, 0))
+    
+    def get_object_distance(self, object_list):
+        """Calculates the length of the point of intersection"""
+        self.wall_dist = None
+        min_dist = self.sensor_length
+        for line in object_list:
+            env_line_pts = [(line.start_x, line.start_y), (line.end_x, line.end_y)]
+            # this is the actual sensor line
+            sensor_line_pts = [
+                (self.agent_pos_x, self.agent_pos_y), 
+                (
+                    self.agent_pos_x + self.sensor_length * np.cos(self.f_theta), 
+                    self.agent_pos_y + self.sensor_length * np.sin(self.f_theta)
+                )
+            ]
+            # get the intersection points, lines dont intersect it is None
+            # intersec_pts = get_position_line_intersection(env_line_pts[0],env_line_pts[1], sensor_line_pts[0], sensor_line_pts[1])
+            intersec_pts = line_line_intersections(env_line_pts, sensor_line_pts)
+            # if the sensor line intersects with the wall
+            if intersec_pts:
+                dist = euclidean_distance(self.agent_pos_x, self.agent_pos_y, intersec_pts[0], intersec_pts[1])
+                # if the sensor line intersects multiple walls get the nearest distance
+                if dist < min_dist:
+                    min_dist = dist
+                    self.intersec_pts = intersec_pts
+                    self.wall_dist = min_dist
+    def update_sensor(self, agent_stats):
 
-        Args:
-            robot_pt (list): coordinates of the robot
-            line_pt1 (np.ndarray): Coordinates of one endpoint of the wall
-            line_pt2 (np.ndarray): Coordinates of other endpoint of the wall
+        self.agent_pos_x = agent_stats["pos_x"]
+        self.agent_pos_y = agent_stats["pos_y"]
 
-        Returns:
-            _type_: distance between the start of sensor and the intersection with wall
-        """
-        sensor_line_pt1 = np.array(
-            [robot_pt[0] + self.radius * np.cos(self.f_theta), robot_pt[1] + self.radius * np.sin(self.f_theta)])
-        sensor_line_pt2 = np.array([robot_pt[0] + (self.radius + self.sensor_length) * np.cos(self.f_theta),
-                                    robot_pt[1] + (self.radius + self.sensor_length) * np.sin(self.f_theta)])
-        self.intersection_pt = seg_intersect(sensor_line_pt1, sensor_line_pt2, line_pt1, line_pt2)
-        dist = np.sqrt(
-            (sensor_line_pt1[0] - self.intersection_pt[0]) ** 2 + (sensor_line_pt1[1] - self.intersection_pt[1]) ** 2)
-        dist = max(min(dist, self.sensor_length), 0)
-        dist = np.nan_to_num(dist, False, nan=0.0)
-        return dist
-
-    def get_end_points(self):
-        """Get the end points of the sensor line segment"""
-
-        x1 = self.pos_x + self.radius * np.cos(self.f_theta)
-        y1 = self.pos_y + self.radius * np.sin(self.f_theta)
-        # if len(self.intersection_pt) > 0:
-        #     x2, y2 = self.intersection_pt
-        # else:
-        x2 = self.pos_x + (self.radius + self.sensor_length) * np.cos(self.f_theta)
-        y2 = self.pos_y + (self.radius + self.sensor_length) * np.sin(self.f_theta)
-        return x1, y1, x2, y2
-
-    def update(self,
-               agent_stats: dict
-               ):
-        self.pos_x = agent_stats["pos_x"]
-        self.pos_y = agent_stats["pos_y"]
         self.robot_theta = agent_stats["theta"]
         self.f_theta = self.theta + self.robot_theta
+        self.start_x = self.agent_pos_x + self.radius * np.cos(self.f_theta)
+        self.start_y = self.agent_pos_y + self.radius * np.sin(self.f_theta)
+        
+        if self.wall_dist:
+            self.end_x = self.intersec_pts[0]
+            self.end_y = self.intersec_pts[1]
+            self.sensor_text = str(round(self.wall_dist,1))
+        else:
+            self.end_x = self.agent_pos_x + self.sensor_length * np.cos(self.f_theta)
+            self.end_y = self.agent_pos_y + self.sensor_length * np.sin(self.f_theta)
+            self.sensor_text = str(self.sensor_length)
+        
+        self.text_surface = self.pygame_font.render(self.sensor_text, False, (0, 0, 0))
 
-    def draw(self,
-             surface: Surface
-             ):
-        # get end points of sensor lines
-        x1, y1, x2, y2 = self.get_end_points()
-        self.body = pygame.draw.line(surface, (0, 0, 0), (x1, y1), (x2, y2), width=int(self.radius / 10))
+    
 
 
 class SensorManager:
     def __init__(self,
                  agent_stats: dict,
-                 no_sensor: int,
+                 num_sensors: int,
                  sensor_length: int,
-                 object_list: list
+                 sim_object_list: list
                  ):
         """SensorManager holds the instances for all the Sensor Lines, and controls their text indicating the
         distance between the sensors and the walls in case of collision.
 
         Args:
             agent_stats (dict): agent stats
-            no_sensor (int): Number of sensors on the Agent
+            num_sensor (int): Number of sensors on the Agent
             sensor_length (int): Length of each sensor on the agent
-            object_list (list): The object list to check the collision of sensor points against the wall.
+            sim_object_list (list): [Part of simulation] The object list to check the collision of sensor points against the wall.
         """
-        self.pygame_font = pygame.font.SysFont('Comic Sans MS', 12)
-        self.pos_x = agent_stats["pos_x"]
-        self.pos_y = agent_stats["pos_y"]
-        self.radius = agent_stats["radius"]
-        self.theta = agent_stats["theta"]
-        self.no_sensor = no_sensor
+        self.agent_pos_x = agent_stats["pos_x"]
+        self.agent_pos_y = agent_stats["pos_y"]
+        self.agent_radius = agent_stats["radius"]
+        self.agent_theta = agent_stats["theta"]
+        self.num_sensors = num_sensors
         self.sensor_length = sensor_length
-        self.sensor_points_rad = [(i * 2 * math.pi / self.no_sensor) for i in range(self.no_sensor)]
-        self.delta_list = [0 if val < 3.14 else 10 for val in self.sensor_points_rad]
-        self.sensor_read = [str(self.sensor_length) for i in range(self.no_sensor)]
-        self.text_surface = [self.pygame_font.render(self.sensor_read[i], False, (0, 0, 0)) for i in
-                             range(self.no_sensor)]
+        self.sensor_thetas = [(i * 2 * np.pi / self.num_sensors) for i in range(self.num_sensors)]
+        self.delta_list = [0 if val < 3.14 else 10 for val in self.sensor_thetas]
+        
         self.sensors = []
-        self.object_list = object_list
+        self.object_list = sim_object_list
         self.previous_sensor_collision = False
-
         self.detected_landmarks = []
-
-        for i in range(self.no_sensor):
+        
+        # initialize the sensorlines
+        for i in range(self.num_sensors):
             sl = SensorLine(agent_stats,
-                            self.sensor_points_rad[i],
+                            self.sensor_thetas[i],
                             sensor_length,
                             i)
             self.sensors.append(sl)
 
-    def reset_sensor(self):
-        self.sensor_read = [str(self.sensor_length) for i in range(self.no_sensor)]
-        self.text_surface = [self.pygame_font.render(self.sensor_read[i], False, (0, 0, 0)) for i in
-                             range(self.no_sensor)]
-
-    def update_agent_sensor_info(self,
-                                 agent_stats: dict
-                                 ):
-        self.pos_x = agent_stats["pos_x"]
-        self.pos_y = agent_stats["pos_y"]
-        self.theta = agent_stats["theta"]
-        for i in range(self.no_sensor):
-            self.sensors[i].update(agent_stats)
-
-    def update_sensor_text(self,
-                           index,
-                           value
-                           ):
-        old_val = int(self.sensor_read[index])
-        value = min(old_val, value)
-        self.sensor_read[index] = str(value)
-        self.text_surface[index] = self.pygame_font.render(self.sensor_read[index], False, (1, 1, 1))
-
-    def update_sensor_status(self):
-        """Checks the collision of the sensors lines against the wall.
-           and updates the textual information in this case.
-        """
-        robot_pt = [self.pos_x, self.pos_y]
-        if self.previous_sensor_collision:
-            self.previous_sensor_collision = False
-            self.reset_sensor()
-        for line in self.object_list:
-            for sensor_line in self.sensors:
-                if line.body.colliderect(sensor_line.body):
-                    line_pt1 = np.array([line.start_x, line.start_y])
-                    line_pt2 = np.array([line.end_x, line.end_y])
-                    dist = sensor_line.get_intersection_pt(robot_pt, line_pt1, line_pt2)
-                    dist = math.floor(dist) - 1
-                    self.update_sensor_text(sensor_line.index, dist)
-                    self.previous_sensor_collision = True
-
-    def draw(self,
-             surface: Surface
-             ):
-        for i in range(self.no_sensor):
-            self.sensors[i].draw(surface)
-        self.update_sensor_status()
-        for i in range(self.no_sensor):
-            surface.blit(self.text_surface[i], ((self.pos_x + (
-                    self.radius + self.sensor_length + self.delta_list[i]) * np.cos(
-                self.theta + self.sensor_points_rad[i])),
-                                                (self.pos_y + (self.radius + self.sensor_length + self.delta_list[
-                                                    i]) * np.sin(self.theta + self.sensor_points_rad[i]))))
 
     def scan_landmarks(self,
                        landmarks: list,
                        time_step: int
                        ):
-        """Scan the landmarks in the environment and get the range and bearing information
+        """Scan the landmarks in the environment and get the range and bearing information"""
         
-        """
         detected_landmarks = []
         # iterate through all sensors and lands marks and check if the landmark point lies on the sensor line
         for landmark in landmarks:
-            range_i = euclidean_distance(self.pos_x, self.pos_y, landmark["x"], landmark["y"])
-
-            # if the beacon is within the sensor range of the agent
-            # TODO: two cases are posiible for senssing landomark
-            # 1. only if sensor line intersects with beacon 2 then we detect beacon
-            # 2, if the beacon is within the sensor range of the agent then we can detect the beacon
-            # case -1
-            # if range_i < self.sensor_length:
-            #     for sensor in self.sensors:
-            #         # check if the landmark circle intersects the sensor line, 
-            #         # making the landmark a circle instead of a point circumvents some error induced by typecasting
-            #         x1,y1,x2,y2 = sensor.get_end_points()
-            #         # if point_on_line((int(landmark[0]), int(landmark[1])), ((int(x1),int(y1)),(int(x2),int(y2)))):
-            #         if circle_line_intersection((int(landmark[0]), int(landmark[1]), 7), ((int(x1),int(y1)),(int(x2),int(y2)))):
-            #             bear_i = atan2(landmark[0] - self.pos_x, landmark[1] - self.pos_y) - self.theta
-            #             #TODO: Bearing can also be calculated from sensor angle of the particular sensor
-            #             # append the range and bear information along with the cordinates and signature of the beacon
-            #             detected_landmarks.append([landmark[0], landmark[1], landmark[2], range_i, bear_i])
-            #             break
-            # case -2
-            if range_i <= self.sensor_length + self.radius:
-                bear_i = atan2(landmark["x"] - self.pos_x, landmark["y"] - self.pos_y) - self.theta
+            range_i = euclidean_distance(self.agent_pos_x, self.agent_pos_y, landmark["x"], landmark["y"])
+            if range_i <= self.sensor_length + self.agent_radius:
+                bear_i = atan2(landmark["x"] - self.agent_pos_x, landmark["y"] - self.agent_pos_y) - self.agent_theta
 
                 time = next(
                     (i["time_step"] for i in self.detected_landmarks if i["signature"] == landmark["signature"]),
@@ -230,3 +158,35 @@ class SensorManager:
                     "time_step": time
                 })
         self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
+    
+    def update(
+            self, 
+            agent_stats: dict):
+        """Update the information of all the sensor lines
+        Args:
+            agent_stats (dict): agent stats
+        """
+        for s in self.sensors:
+            s.get_object_distance(self.object_list)
+            # print(f"Sendor: ", s.index)
+            s.update_sensor(agent_stats)
+    
+    def draw(self,
+             surface: Surface,
+             agent_stats: dict,
+             ):
+        self.update(agent_stats)
+        # self.update_sensor_status()
+        for s in self.sensors:
+            # draw the sesnor line
+            s.body = pygame.draw.line(
+                surface, 
+                (0, 0, 0), 
+                (s.start_x, s.start_y), 
+                (s.end_x, s.end_y), 
+                width=int(s.radius / 10)
+            )
+            # Draw the text on the sensor line
+            surface.blit(s.text_surface, (s.end_x, s.end_y))
+
+    
