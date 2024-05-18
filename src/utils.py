@@ -2,6 +2,7 @@ import numpy as np
 from src.environment import Line
 import sympy as sp
 import pygame
+from shapely.geometry import LineString
 
 def euclidean_distance(x1, y1, x2, y2):
     """
@@ -330,3 +331,31 @@ def add_control_noise(controls,alpha = [0.0, 0.0, 0.0, 0.0]):
     controls[0] += vel_noise
     controls[1] += angular_noise
     return controls
+
+# def line_line_intersections(line1, line2):
+#     # define env_line
+#     env_line = sp.Line(sp.Point(line1[0][0], line1[0][1]), sp.Point(line1[1][0], line1[1][1]))
+#     l2 = sp.Line(sp.Point(line2[0][0], line2[0][1]), sp.Point(line2[1][0], line2[1][1]))
+#     intersection = env_line.intersection(l2)
+#     # get the coordinates of the intersection point as a tuple of floats
+#     if len(intersection) == 1 and isinstance(intersection[0], sp.Point):
+#         return (float(intersection[0].x), float(intersection[0].y))
+#     return None
+def line_line_intersections(line1, line2):
+
+    line1 = LineString(line1)
+    line2 = LineString(line2)
+
+    intersection = line1.intersection(line2)
+
+    if intersection.is_empty:
+        return None
+    elif intersection.geom_type == 'Point':
+        return intersection.x, intersection.y
+    elif intersection.geom_type == 'MultiPoint':
+        # If there are multiple intersection points, return the first one
+        return intersection[0].x, intersection[0].y
+    else:
+        return None
+
+

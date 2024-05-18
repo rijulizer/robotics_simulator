@@ -1,4 +1,0 @@
-Experiment Name: Exp_process_noise_llandmark_belowMN
-Average Delta x: 81.25
-Average Delta y: 52.21
-Average Delta theta: 83.42
