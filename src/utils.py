@@ -1,5 +1,5 @@
 import numpy as np
-from src.environment import Line
+#from src.environment import Line
 import sympy as sp
 import pygame
 from shapely.geometry import LineString
@@ -141,7 +141,7 @@ def get_wall_collision_angle(agent: dict,
     return collision_angles
 
 
-def calculate_angle(line: Line,
+def calculate_angle(line,
                     agent: dict):
     """
     Calculate the angle of collision between the agent and the wall
