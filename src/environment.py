@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-
+from src.dust import Dust
 
 class Line:
     def __init__(self, win, startX, startY, endX, endY):
@@ -76,13 +76,13 @@ class Environment:
             [border_x + border_len, line_2_end_pos_y],
             [border_x + border_len, line_1_end_pos_y],
         ]
+        self.dust = Dust((50,70),1,win.get_size())
    
     def put_landmarks(self, win, number_of_landmarks=20):
-
         # put landmarks on the environment
         # TODO: now all points are put as landmarks, we can put only some of them randomly and experiment
         # Pick random points from the environment points
-        np.random.seed(14)
+        #np.random.seed(14)
         self.points = np.array(self.points)
         random_points = self.points[np.random.choice(self.points.shape[0], number_of_landmarks, replace=False), :]
         self.landmarks = []
@@ -94,6 +94,3 @@ class Environment:
                 "x": point[0],
                 "y": point[1]
             })
-        
-        
-        
