@@ -37,13 +37,17 @@ class SensorLine:
         # for drawing the sensor line
         self.start_x = self.agent_pos_x + self.radius * np.cos(self.f_theta)
         self.start_y = self.agent_pos_y + self.radius * np.sin(self.f_theta)
-        self.end_x = self.agent_pos_x + self.sensor_length * np.cos(self.f_theta)
-        self.end_y = self.agent_pos_y + self.sensor_length * np.sin(self.f_theta)
+        self.end_x = self.agent_pos_x + (self.radius + self.sensor_length) * np.cos(
+            self.f_theta
+        )
+        self.end_y = self.agent_pos_y + (self.radius + self.sensor_length) * np.sin(
+            self.f_theta
+        )
 
-        self.pygame_font = pygame.font.SysFont('Comic Sans MS', 12)
+        self.pygame_font = pygame.font.SysFont("Comic Sans MS", 12)
         self.sensor_text = str(self.sensor_length)
         self.text_surface = self.pygame_font.render(self.sensor_text, False, (0, 0, 0))
-    
+
     def get_object_distance(self, object_list):
         """Calculates the point of intersection, and the distance between the sensor line and the wall
         Args:
@@ -55,23 +59,31 @@ class SensorLine:
             env_line_pts = [(line.start_x, line.start_y), (line.end_x, line.end_y)]
             # this is the actual sensor line
             sensor_line_pts = [
-                (self.agent_pos_x, self.agent_pos_y), 
                 (
-                    self.agent_pos_x + self.sensor_length * np.cos(self.f_theta), 
-                    self.agent_pos_y + self.sensor_length * np.sin(self.f_theta)
-                )
+                    self.agent_pos_x + self.radius * np.cos(self.f_theta),
+                    self.agent_pos_y + self.radius * np.sin(self.f_theta),
+                ),
+                (
+                    self.agent_pos_x
+                    + (self.radius + self.sensor_length) * np.cos(self.f_theta),
+                    self.agent_pos_y
+                    + (self.radius + self.sensor_length) * np.sin(self.f_theta),
+                ),
             ]
             # get the intersection points, lines dont intersect it is None
             # intersec_pts = get_position_line_intersection(env_line_pts[0],env_line_pts[1], sensor_line_pts[0], sensor_line_pts[1])
             intersec_pts = line_line_intersections(env_line_pts, sensor_line_pts)
             # if the sensor line intersects with the wall
             if intersec_pts:
-                dist = euclidean_distance(self.agent_pos_x, self.agent_pos_y, intersec_pts[0], intersec_pts[1])
+                dist = euclidean_distance(
+                    sensor_line_pts[0][0], sensor_line_pts[0][1], intersec_pts[0], intersec_pts[1]
+                )
                 # if the sensor line intersects multiple walls get the nearest distance
                 if dist < min_dist:
                     min_dist = dist
                     self.intersec_pts = intersec_pts
                     self.wall_dist = min_dist
+
     def update_sensor(self, agent_stats):
         """Update the sensor line information needed for drawing the sensor line
         Args:
@@ -91,11 +103,16 @@ class SensorLine:
             self.sensor_text = str(round(self.wall_dist,1))
         # if the sensor line does not intersect with the wall
         else:
-            self.end_x = self.agent_pos_x + self.sensor_length * np.cos(self.f_theta)
-            self.end_y = self.agent_pos_y + self.sensor_length * np.sin(self.f_theta)
+            self.end_x = self.agent_pos_x + (self.radius + self.sensor_length) * np.cos(
+                self.f_theta
+            )
+            self.end_y = self.agent_pos_y + (self.radius + self.sensor_length) * np.sin(
+                self.f_theta
+            )
             self.sensor_text = str(self.sensor_length)
-        
+
         self.text_surface = self.pygame_font.render(self.sensor_text, False, (0, 0, 0))
+
 
 class SensorManager:
     def __init__(self,
@@ -199,6 +216,6 @@ class SensorManager:
                     "time_step": time
                 })
         self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
-        print(len(self.detected_landmarks))
+        #print(len(self.detected_landmarks))
 
         
