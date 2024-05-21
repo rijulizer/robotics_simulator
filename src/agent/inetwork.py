@@ -1,7 +1,8 @@
 
 import numpy as np
+
 class INetwork:
-    def __init__(self,num_sensors,velocity_range,min_velocity,network):
+    def __init__(self,velocity_range,min_velocity,network):
         self.nn = network
         self.alpha = 0.01
         self.velocity_range = velocity_range

@@ -1,11 +1,12 @@
 import pygame
 from src.agent.agent import Agent
 from src.agent.sensor import SensorManager
+from src.agent.inetwork import INetwork
 from src.environment import Environment
 from src.engine import simulate
 from src.utils import draw_belief_ellipse
 from src.graphGUI.graphs import GraphGUI
-from src.inetwork import INetwork
+
 import pickle as pkl
 import numpy as np
 import logging
@@ -58,14 +59,18 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     pygame.display.update()
 
 
-def _init_GUI(num_landmarks):
+def _init_GUI(num_landmarks,pygame_flags = None):
     # initialize
     pygame.init()
 
     # Create window
     win_length = 1000
     win_height = 800
-    win = pygame.display.set_mode((win_length, win_height), flags=pygame.HIDDEN)
+    if pygame_flags == None:
+        win = pygame.display.set_mode((win_length, win_height))
+    else:
+        win = pygame.display.set_mode((win_length, win_height), flags=pygame_flags) #pygame.HIDDEN
+    
     pygame.display.set_caption("Robotics Simulation")
     # Fonts
     font = pygame.font.Font(None, 30)
@@ -284,10 +289,11 @@ def run_network_simulation(
         track: bool = False,
         num_landmarks: int = 20,
         max_time_steps: int = 2000,
-        network: object = None
+        network: object = None,
+        pygameflags: int = pygame.HIDDEN
 ):
     # initialize
-    win, environment_surface, agent, font, env, sensormanager = _init_GUI(num_landmarks)
+    win, environment_surface, agent, font, env, sensormanager = _init_GUI(num_landmarks,pygameflags)
     initial_dust_q = len(env.dust.group.sprites())
 
     # Define variables
@@ -299,7 +305,7 @@ def run_network_simulation(
     vr = 0
     vr_max = 5  # * delta_t
     vr_min = - vr_max
-    inet = INetwork(sensormanager.no_sensor,2*vl_max,[vl_min,vr_min],network)
+    inet = INetwork(2*vl_max,[vl_min,vr_min],network)
 
     sim_run = True
     freeze = False
