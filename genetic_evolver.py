@@ -98,7 +98,6 @@ class GeneticEvolver:
         _,driving_rule,excitatory_rule,learning_rate,learning_rule = self.decode_single_sequence(interested_s)
         nn = NeuralNetwork(number_sensors,driving_rule,excitatory_rule,learning_rate,learning_rule)
         run_network_simulation(delta_t=1,
-                       graphGUI=None,
                        track=False,
                        num_landmarks=0,
                        max_time_steps = 5000,
@@ -114,7 +113,6 @@ class GeneticEvolver:
             nseq,seq,driving_rule,excitatory_rule,learning_rate,learning_rule = self.generate_single_sequence()
             nn = NeuralNetwork(number_sensors,driving_rule,excitatory_rule,learning_rate,learning_rule)
             res = run_network_simulation(delta_t=1,
-                           graphGUI=None,
                            track=False,
                            num_landmarks=0,
                            max_time_steps = 160,
@@ -142,7 +140,6 @@ class GeneticEvolver:
             seq,driving_rule,excitatory_rule,learning_rate,learning_rule = self.decode_single_sequence(newgenes[p])
             nn = NeuralNetwork(number_sensors,driving_rule,excitatory_rule,learning_rate,learning_rule)
             res = run_network_simulation(delta_t=1,
-                           graphGUI=None,
                            track=False,
                            num_landmarks=0,
                            max_time_steps = 160,

@@ -88,7 +88,7 @@ def _init_GUI(num_landmarks,pygame_flags = None):
     theta = 0
 
     number_sensors = 12
-    sensor_length = 10
+    sensor_length = 30
 
     agent = Agent(pos_x, pos_y, radius, theta)
 
@@ -250,7 +250,6 @@ def run_simulation(
 
 def run_network_simulation(
         delta_t: float,
-        graphGUI: GraphGUI,
         track: bool = False,
         num_landmarks: int = 20,
         max_time_steps: int = 2000,
@@ -299,7 +298,7 @@ def run_network_simulation(
                     vr = max(vr, vr_min)
                 elif event.key == pygame.K_SPACE:
                     freeze = not freeze
-        sensor_values = [int(s) for s in sensormanager.sensor_read]
+        sensor_values = [int(float(s.sensor_text)) for s in sensormanager.sensors]
         vl,vr = inet.get_input_velocity(sensor_values)
         # core logic starts here
         if not freeze:
@@ -322,121 +321,6 @@ def run_network_simulation(
 
             if track:
                 tracker.append((vl, vr))
-
-            # update the graph
-            if graphGUI:
-                delta_x.append(abs(agent.pos_x - agent.bel_pos_x))
-                delta_y.append(abs(agent.pos_y - agent.bel_pos_y))
-                delta_theta.append(abs(agent.theta - agent.bel_theta))
-                vl_list.append(vl)
-                vr_list.append(vr)
-                if time_step % 10 == 0:
-                    graphGUI.update_plot({"vl": vl_list,
-                                          "vr": vr_list,
-                                          "delta_x": delta_x,
-                                          "delta_y": delta_y,
-                                          "delta_theta": delta_theta})
-                    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
-
-        draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
-        max_time_steps -=1
-    # save the tracker
-    if track:
-        with open("tracker.pkl", "wb") as f:
-            pkl.dump(tracker, f)
-
-    pygame.quit()
-    return initial_dust_q - final_dust_q
-
-def run_network_simulation(
-        delta_t: float,
-        graphGUI: GraphGUI,
-        track: bool = False,
-        num_landmarks: int = 20,
-        max_time_steps: int = 2000,
-        network: object = None,
-        pygameflags: int = pygame.HIDDEN
-):
-    # initialize
-    win, environment_surface, agent, font, env, sensormanager = _init_GUI(num_landmarks,pygameflags)
-    initial_dust_q = len(env.dust.group.sprites())
-
-    # Define variables
-    delta_t_max = delta_t
-    delta_t_curr = delta_t_max
-    vl = 0
-    vl_max = 5  # * delta_t
-    vl_min = - vl_max
-    vr = 0
-    vr_max = 5  # * delta_t
-    vr_min = - vr_max
-    inet = INetwork(2*vl_max,[vl_min,vr_min],network)
-
-    sim_run = True
-    freeze = False
-    time_step = 0
-    tracker = []
-    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
-    while sim_run and max_time_steps >= 0:
-        pygame.time.delay(25)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sim_run = False
-            # read movements
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w and not freeze:
-                    vl += 1  # delta_t
-                    vl = min(vl, vl_max)
-                elif event.key == pygame.K_s and not freeze:
-                    vl -= 1  # delta_t
-                    vl = max(vl, vl_min)
-                elif event.key == pygame.K_o and not freeze:
-                    vr += 1  # delta_t
-                    vr = min(vr, vr_max)
-                elif event.key == pygame.K_l and not freeze:
-                    vr -= 1  # delta_t
-                    vr = max(vr, vr_min)
-                elif event.key == pygame.K_SPACE:
-                    freeze = not freeze
-        sensor_values = [int(s) for s in sensormanager.sensor_read]
-        vl,vr = inet.get_input_velocity(sensor_values)
-        # core logic starts here
-        if not freeze:
-            success = simulate(agent,
-                               vr,
-                               vl,
-                               delta_t_curr,
-                               env.line_list,
-                               env.landmarks,
-                               time_step
-                               )
-
-            if not success:
-                delta_t_curr -= 0.1
-            else:
-                delta_t_curr = delta_t_max
-
-            # update the time ste
-            time_step += 1
-
-            if track:
-                tracker.append((vl, vr))
-
-            # update the graph
-            if graphGUI:
-                delta_x.append(abs(agent.pos_x - agent.bel_pos_x))
-                delta_y.append(abs(agent.pos_y - agent.bel_pos_y))
-                delta_theta.append(abs(agent.theta - agent.bel_theta))
-                vl_list.append(vl)
-                vr_list.append(vr)
-                if time_step % 10 == 0:
-                    graphGUI.update_plot({"vl": vl_list,
-                                          "vr": vr_list,
-                                          "delta_x": delta_x,
-                                          "delta_y": delta_y,
-                                          "delta_theta": delta_theta})
-                    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
 
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
         max_time_steps -=1
