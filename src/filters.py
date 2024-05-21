@@ -63,4 +63,4 @@ if __name__ == "__main__":
     delta_t = 1.0
 
     mean, cov = kalman_filter(mean, cov, controls, measurements, delta_t)
-    print(mean, cov)
+    #print(mean, cov)
