@@ -85,10 +85,10 @@ def _init_GUI(num_landmarks,pygame_flags = None):
     pos_x = 200
     pos_y = 200
     radius = 30
-    theta = 0
+    theta = 1.57
 
     number_sensors = 12
-    sensor_length = 30
+    sensor_length = 70
 
     agent = Agent(pos_x, pos_y, radius, theta)
 
@@ -155,7 +155,8 @@ def run_saved_simulation(
                            delta_t_curr,
                            env.line_list,
                            env.landmarks,
-                           time_step
+                           time_step,
+                           True
                            )
 
         if not success:
@@ -223,7 +224,8 @@ def run_simulation(
                                delta_t_curr,
                                env.line_list,
                                env.landmarks,
-                               time_step
+                               time_step,
+                               True
                                )
 
             if not success:
@@ -258,7 +260,7 @@ def run_network_simulation(
 ):
     # initialize
     win, environment_surface, agent, font, env, sensormanager = _init_GUI(num_landmarks,pygameflags)
-    initial_dust_q = len(env.dust.group.sprites())
+    initial_dust_q = len(env.dust.group)
 
     # Define variables
     delta_t_max = delta_t
@@ -272,66 +274,42 @@ def run_network_simulation(
     inet = INetwork(2*vl_max,[vl_min,vr_min],network)
 
     sim_run = True
-    freeze = False
     time_step = 0
-    tracker = []
-    delta_x, delta_y, delta_theta, vl_list, vr_list = [], [], [], [], []
     while sim_run and max_time_steps >= 0:
-        pygame.time.delay(25)
+        if pygameflags == None:
+            pygame.time.delay(25)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sim_run = False
-            # read movements
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w and not freeze:
-                    vl += 1  # delta_t
-                    vl = min(vl, vl_max)
-                elif event.key == pygame.K_s and not freeze:
-                    vl -= 1  # delta_t
-                    vl = max(vl, vl_min)
-                elif event.key == pygame.K_o and not freeze:
-                    vr += 1  # delta_t
-                    vr = min(vr, vr_max)
-                elif event.key == pygame.K_l and not freeze:
-                    vr -= 1  # delta_t
-                    vr = max(vr, vr_min)
-                elif event.key == pygame.K_SPACE:
-                    freeze = not freeze
+
         sensor_values = [int(float(s.sensor_text)) for s in sensormanager.sensors]
         vl,vr = inet.get_input_velocity(sensor_values)
         # core logic starts here
-        if not freeze:
-            success = simulate(agent,
-                               vr,
-                               vl,
-                               delta_t_curr,
-                               env.line_list,
-                               env.landmarks,
-                               time_step
-                               )
+        success = simulate(agent,
+                            vr,
+                            vl,
+                            delta_t_curr,
+                            env.line_list,
+                            env.landmarks,
+                            time_step,
+                            False
+                            )
 
-            if not success:
-                delta_t_curr -= 0.1
-            else:
-                delta_t_curr = delta_t_max
+        if not success:
+            delta_t_curr -= 0.1
+        else:
+            delta_t_curr = delta_t_max
 
-            # update the time ste
-            time_step += 1
+        # update the time ste
+        time_step += 1
 
-            if track:
-                tracker.append((vl, vr))
-
-        draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
+        draw_all(win, environment_surface, agent, vl, vr, delta_t, False, time_step, font, env)
         max_time_steps -=1
-    final_dust_q = len(env.dust.group.sprites())
-    # save the tracker
-    if track:
-        with open("tracker.pkl", "wb") as f:
-            pkl.dump(tracker, f)
-
+    final_dust_q = len(env.dust.group)
+    dustfn = np.round(((initial_dust_q - final_dust_q)/initial_dust_q),2)
     pygame.quit()
-    return initial_dust_q - final_dust_q
+    return dustfn
 
 def run_experiments(track,
                     num_landmarks=8,

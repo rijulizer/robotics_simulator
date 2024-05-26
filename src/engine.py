@@ -10,7 +10,8 @@ def simulate(agent: Agent,
              delta_t_curr: float,
              object_list: list,
              env_landmarks: list,
-             time_step: int
+             time_step: int,
+             apply_filter: bool
              ) -> bool:
     result = True
     # Current agent position
@@ -84,5 +85,6 @@ def simulate(agent: Agent,
     agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
 
     # Apply filter
-    agent.apply_filter(v, w, delta_t_curr)
+    if(apply_filter):
+        agent.apply_filter(v, w, delta_t_curr)
     return result

@@ -6,7 +6,7 @@ from genetic_evolver import GeneticEvolver
 #     ge.run_test_evolutionn('./src/experiments_data/genetic_evolution_results11')
 
 if __name__ == "__main__":
-    for i in range(0,50,1):
+    for i in range(1,50,1):
         ge = GeneticEvolver()
         filename = './src/experiments_data/genetic_evolution_results'+str(i)+'b.pkl'
         binname = './src/experiments_data/genetic_evolution_results'+str(i+1)

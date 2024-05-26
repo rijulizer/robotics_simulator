@@ -1,16 +1,21 @@
 from main import run_network_simulation
-from src.neuralnetwork import NeuralNetwork
+from src.neuralnetwork22 import NeuralNetwork2 as NeuralNetwork
+#from src.neuralnetwork import NeuralNetwork
+#from src.neuralnetwork10 import NeuralNetwork
 import numpy as np
 import pickle as pkl
+import math
 
-TOTAL_NUMBER_NEURONS = (12+3)*3
-
+#TOTAL_NUMBER_NEURONS = (12+3)*3
+TOTAL_NUMBER_NEURONS = (12+4)*4 + 4*2
 # driving or modulatory (1 bit)
 # excitatory or inhibitory (1 bit)
 # learning rule (2 bits) 
 # learning rate (2 bits) --> [0.0,0.3,0.7,1.0]
 GENETIC_PARAMS_PER_NEURON = 6
 NUMBER_OF_SENSORS = 12
+POPULATION_SIZE = 100
+TOTAL_SEQUENCE_LENGTH = TOTAL_NUMBER_NEURONS*GENETIC_PARAMS_PER_NEURON
 
 class GeneticEvolver:
     def __init__(self):
@@ -19,6 +24,12 @@ class GeneticEvolver:
 
     def bin2dec(self,num):
         return num[1]*2+num[0]
+    
+    def softmax(self,z):
+        s = np.max(z, axis=0)
+        e_x = np.exp(z - s)
+        div = np.sum(e_x, axis=0)
+        return e_x / div
 
     def read_test_file(self,file):
         with open(file, "rb") as f:
@@ -35,7 +46,7 @@ class GeneticEvolver:
         excitatory_rule = np.zeros((TOTAL_NUMBER_NEURONS),dtype=int)
         final_seq = ""
         sequence = np.random.randint(2,size = (TOTAL_NUMBER_NEURONS,GENETIC_PARAMS_PER_NEURON))
-        for i in range(45):
+        for i in range(TOTAL_NUMBER_NEURONS):
             seq,seq_data = self.decode_sub_sequence(sequence[i])
             final_seq += seq
             learning_rate[i] = self.learning_rate[seq_data[3]]
@@ -61,7 +72,7 @@ class GeneticEvolver:
 
     def reproduce_members(self,population_size):
         probabilities = np.array([c for _,c in self.record])
-        probabilities = probabilities/np.sum(probabilities)
+        probabilities = self.softmax(probabilities)
 
         newgenes_index = np.random.choice(range(len(self.record)),size = (population_size),p=probabilities)
         pairs = np.random.choice(range(len(self.record)),size = (population_size),replace=False)
@@ -80,8 +91,8 @@ class GeneticEvolver:
             selected_genes[p1] = newgene1
             selected_genes[p2] = newgene2
         for mi in mutation_indices:
-            index1 = int(mi / 270)
-            index2 = int(mi % 270)
+            index1 = int(mi / TOTAL_SEQUENCE_LENGTH)
+            index2 = int(mi % TOTAL_SEQUENCE_LENGTH)
             selected_genes[index1][index2] = selected_genes[index1][index2] ^ 1
         
         selected_genes = selected_genes.reshape((population_size,TOTAL_NUMBER_NEURONS,GENETIC_PARAMS_PER_NEURON))
@@ -89,10 +100,16 @@ class GeneticEvolver:
 
     def run_test(self,fitness_value):
         interested_s= None
+        index = 0
+        i1ndex = 0
         for s,c in self.record:
-            if c==fitness_value:
+            if abs(c - fitness_value) <= 0.001:
+                i1ndex+=1
                 interested_s = s
+                print(index,c)
                 break
+                #if i1ndex ==3 : break;
+            index +=1
         
         number_sensors = NUMBER_OF_SENSORS
         _,driving_rule,excitatory_rule,learning_rate,learning_rule = self.decode_single_sequence(interested_s)
@@ -104,9 +121,9 @@ class GeneticEvolver:
                        network = nn,
                        pygameflags=None)
         
-    def run_test_evolution_starter(self, filename = './src/experiments_data/genetic_evolution_results'):
-        number_sensors = 12
-        population_size = 100
+    def run_test_evolution_starter(self, filename = './src/experiments_data/genetic_evolution_results0'):
+        number_sensors = NUMBER_OF_SENSORS
+        population_size = POPULATION_SIZE
         data = []
         datapkl = []
         for p in range(population_size):
@@ -117,8 +134,10 @@ class GeneticEvolver:
                            num_landmarks=0,
                            max_time_steps = 160,
                            network = nn)
-            data.append((seq,res))
-            datapkl.append((nseq,res))
+            #fitness = np.round(res*(1-np.mean(nn.max_sensor_input)),2)
+            fitness = np.round(res*0.5 + (1-np.mean(nn.max_sensor_input))*0.5,2)
+            data.append((seq,fitness))
+            datapkl.append((nseq,fitness))
             print (p," population running ", end='\r')
         print ("")
         
@@ -131,9 +150,9 @@ class GeneticEvolver:
             pkl.dump(datapkl, f)
 
     def run_test_evolutionn(self,filename):
-        population_size = 100
+        population_size = POPULATION_SIZE
         newgenes = self.reproduce_members(population_size)
-        number_sensors = 12
+        number_sensors = NUMBER_OF_SENSORS
         data = []
         datapkl = []
         for p in range(population_size):
@@ -144,8 +163,10 @@ class GeneticEvolver:
                            num_landmarks=0,
                            max_time_steps = 160,
                            network = nn)
-            data.append((seq,res))
-            datapkl.append((newgenes[p],res))
+            #fitness = np.round(res*(1-np.mean(nn.max_sensor_input)),2)
+            fitness = np.round(res*0.5 + (1-np.mean(nn.max_sensor_input))*0.5,2)
+            data.append((seq,fitness))
+            datapkl.append((newgenes[p],fitness))
             print (p," population running ", end='\r')
         print ("")
         txtfile = filename + ".txt"
