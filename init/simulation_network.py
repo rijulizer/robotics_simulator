@@ -1,13 +1,15 @@
 from init.utils.utils import draw_all
 from src.utils.engine import simulate
+import torch
 import pygame
 import numpy as np
+from src.agent.network import NetworkFromWeights
 
 
 def run_network_simulation(
         delta_t: float,
         max_time_steps: int = 2000,
-        network: object = None,
+        network: NetworkFromWeights = None,
         agent=None,
         win=None,
         environment_surface=None,
@@ -31,7 +33,8 @@ def run_network_simulation(
                 sim_run = False
 
         # get the output from the network
-        vl, vr = network.forward([int(float(s.sensor_text)) for s in agent.sensor_manager.sensors])
+        sensor_data = np.array([s.sensor_text for s in agent.sensor_manager.sensors], dtype=np.float32)
+        vl, vr = network.forward(torch.from_numpy(sensor_data))
 
         # core logic starts here
         success = simulate(agent,
