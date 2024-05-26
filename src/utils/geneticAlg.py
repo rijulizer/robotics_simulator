@@ -1,5 +1,9 @@
 import random
 
+from init.utils.utils import _init_GUI
+from src.agent.network import NetworkFromWeights
+from init.simulation_network import run_network_simulation
+
 
 class GeneticAlgorithm:
 
@@ -133,19 +137,38 @@ class GeneticAlgorithm:
         # Open file to write the results
         with open('src/data/genEvo/genetic_algorithm_results.txt', 'w') as file:
             generation = 0
+
+            # Initialize simulation parameters
+            num_landmarks = 0
+            num_sensor = 14
+            sensor_length = 100
+            delta_t = 1
+            max_time_steps = 1000
+
             while generation < self.GEN_MAX:
                 # Evaluate our population (Calculate fitness)
-                # CODE START
+                for chromo in population:
+                    network = NetworkFromWeights(chromo["Gen"], 10)
+                    # Run simulation
+                    win, environment_surface, agent, font, env = _init_GUI(num_landmarks,
+                                                                           num_sensor,
+                                                                           sensor_length)
 
-                # For loop through population
+                    dust_remains = run_network_simulation(delta_t,
+                                                          max_time_steps,
+                                                          network,
+                                                          agent,
+                                                          win,
+                                                          environment_surface,
+                                                          env,
+                                                          font)
 
-                # Create the Network
+                    chromo["fitness"] = -dust_remains
 
-                # Run Simulation
 
-                # Calculate Fitness
+                for chromo in population:
+                    print(chromo)
 
-                # CODE END
 
                 best_sample = max(population, key=self.fitness)
                 file.write(f"Gen: {generation}, Best Sample: {best_sample}, Fitness: {self.fitness(best_sample)}\n")
@@ -168,4 +191,3 @@ class GeneticAlgorithm:
                 generation += 1
 
         return best_sample
-
