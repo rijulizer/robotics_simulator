@@ -3,7 +3,7 @@ import numpy as np
 from pygame import Surface
 import pygame
 import logging
-from src.utils import euclidean_distance
+from src.utils.utils import euclidean_distance
 
 
 class DustParticle:

@@ -1,5 +1,6 @@
 import random
 
+
 class GeneticAlgorithm:
 
     def __init__(self,
@@ -130,7 +131,7 @@ class GeneticAlgorithm:
         population = [self.random_chromosome() for _ in range(self.POP_SIZE)]
 
         # Open file to write the results
-        with open('genetic_algorithm_results.txt', 'w') as file:
+        with open('src/data/genEvo/genetic_algorithm_results.txt', 'w') as file:
             generation = 0
             while generation < self.GEN_MAX:
                 # Evaluate our population (Calculate fitness)
@@ -160,25 +161,23 @@ class GeneticAlgorithm:
 
         return best_sample
 
-
 # Parameters
-params = {
-    "POP_SIZE": 100,
-    "CHROMOSOME_LENGTH": 10,
-    "GEN_MAX": 100,
-    "SELECTION_PARAM": {
-        "type": "tournament",
-        "num_individuals": 20,
-        "tournament_size": 5
-    },
-    "MUTATION_PARAM": {
-        "type": "uniform",
-        "rate": 0.01
-    },
-    "CROSSOVER_PARAM": {
-        "type": "one_point"
-    }
-}
-genAlg = GeneticAlgorithm(**params)
-print(genAlg)
-
+# params = {
+#     "POP_SIZE": 100,
+#     "CHROMOSOME_LENGTH": 10,
+#     "GEN_MAX": 100,
+#     "SELECTION_PARAM": {
+#         "type": "tournament",
+#         "num_individuals": 20,
+#         "tournament_size": 5
+#     },
+#     "MUTATION_PARAM": {
+#         "type": "uniform",
+#         "rate": 0.01
+#     },
+#     "CROSSOVER_PARAM": {
+#         "type": "one_point"
+#     }
+# }
+# genAlg = GeneticAlgorithm(**params)
+# print(genAlg)

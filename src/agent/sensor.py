@@ -1,10 +1,8 @@
 import numpy as np
 from pygame import Surface
 import pygame
-from sympy import Point, Line
-import logging
 
-from src.utils import euclidean_distance, atan2, line_line_intersections
+from src.utils.utils import euclidean_distance, atan2, line_line_intersections
 
 
 class SensorLine:
@@ -206,7 +204,7 @@ class SensorManager:
                 time = next(
                     (i["time_step"] for i in self.detected_landmarks if i["signature"] == landmark["signature"]),
                     time_step)
-                time =  0
+
                 detected_landmarks.append({
                     "x": landmark["x"],
                     "y": landmark["y"],
@@ -216,6 +214,5 @@ class SensorManager:
                     "time_step": time
                 })
         self.detected_landmarks = sorted(detected_landmarks, key=lambda x: x["time_step"])
-        #print(len(self.detected_landmarks))
 
         

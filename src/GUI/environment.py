@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
-from src.dust import Dust
+from src.GUI.dust import Dust
+
 
 class Line:
     def __init__(self, win, startX, startY, endX, endY):
@@ -45,8 +46,10 @@ class Environment:
         # define the rectangular border with lines
         self.line_list.append(Line(win, border_x, border_y, border_x, border_y + border_height))
         self.line_list.append(Line(win, border_x, border_y, border_x + border_len, border_y))
-        self.line_list.append(Line(win, border_x + border_len, border_y, border_x + border_len, border_y + border_height))
-        self.line_list.append(Line(win, border_x + border_len, border_y + border_height, border_x, border_y + border_height))
+        self.line_list.append(
+            Line(win, border_x + border_len, border_y, border_x + border_len, border_y + border_height))
+        self.line_list.append(
+            Line(win, border_x + border_len, border_y + border_height, border_x, border_y + border_height))
 
         # draw obstacle lines
         self.line_list.append(Line(win, line_1_start_pos_x, line_1_start_pos_y, line_1_end_pos_x, line_1_end_pos_y))
@@ -76,8 +79,8 @@ class Environment:
             [border_x + border_len, line_2_end_pos_y],
             [border_x + border_len, line_1_end_pos_y],
         ]
-        self.dust = Dust((50,70),1,win.get_size())
-   
+        self.dust = Dust((50, 70), 1, win.get_size())
+
     def put_landmarks(self, win, number_of_landmarks=20):
         # put landmarks on the environment
         # TODO: now all points are put as landmarks, we can put only some of them randomly and experiment
