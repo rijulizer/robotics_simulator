@@ -7,6 +7,7 @@ import pickle as pkl
 def run_simulation(
         delta_t: float,
         track: bool = False,
+        file_name: str = "tracker",
         agent=None,
         win=None,
         environment_surface=None,
@@ -79,7 +80,7 @@ def run_simulation(
 
     # save the tracker
     if track:
-        with open("data/records/tracker.pkl", "wb") as f:
+        with open(f"data/records/{file_name}.pkl", "wb") as f:
             pkl.dump(tracker, f)
 
     pygame.quit()

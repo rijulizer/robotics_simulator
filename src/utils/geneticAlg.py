@@ -161,23 +161,3 @@ class GeneticAlgorithm:
 
         return best_sample
 
-# Parameters
-# params = {
-#     "POP_SIZE": 100,
-#     "CHROMOSOME_LENGTH": 10,
-#     "GEN_MAX": 100,
-#     "SELECTION_PARAM": {
-#         "type": "tournament",
-#         "num_individuals": 20,
-#         "tournament_size": 5
-#     },
-#     "MUTATION_PARAM": {
-#         "type": "uniform",
-#         "rate": 0.01
-#     },
-#     "CROSSOVER_PARAM": {
-#         "type": "one_point"
-#     }
-# }
-# genAlg = GeneticAlgorithm(**params)
-# print(genAlg)

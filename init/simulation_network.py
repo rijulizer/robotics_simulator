@@ -1,4 +1,4 @@
-from init.utils.utils import _init_GUI, draw_all
+from init.utils.utils import draw_all
 from src.utils.engine import simulate
 import pygame
 import numpy as np
