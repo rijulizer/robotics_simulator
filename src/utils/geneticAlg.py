@@ -137,6 +137,14 @@ class GeneticAlgorithm:
                 # Evaluate our population (Calculate fitness)
                 # CODE START
 
+                # For loop through population
+
+                # Create the Network
+
+                # Run Simulation
+
+                # Calculate Fitness
+
                 # CODE END
 
                 best_sample = max(population, key=self.fitness)
