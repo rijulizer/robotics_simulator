@@ -1,7 +1,6 @@
-import logging
-
+import numpy as np
 from src.agent.agent import Agent
-from src.utils import *
+from src.utils.utils import get_wall_collision_angle, get_collision_point_line, push_back_from_collision, seg_intersect
 
 
 def simulate(agent: Agent,
@@ -10,7 +9,8 @@ def simulate(agent: Agent,
              delta_t_curr: float,
              object_list: list,
              env_landmarks: list,
-             time_step: int
+             time_step: int,
+             apply_filter: bool
              ) -> bool:
     result = True
     # Current agent position
@@ -81,8 +81,11 @@ def simulate(agent: Agent,
             result = False
 
     # Detect landmarks
+    agent.sensor_manager.update(agent.get_agent_stats())
     agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
 
     # Apply filter
-    agent.apply_filter(v, w, delta_t_curr)
+    if apply_filter:
+        agent.apply_filter(v, w, delta_t_curr)
+
     return result

@@ -1,8 +1,8 @@
 import numpy as np
-from src.environment import Line
 import sympy as sp
 import pygame
 from shapely.geometry import LineString
+
 
 def euclidean_distance(x1, y1, x2, y2):
     """
@@ -141,7 +141,7 @@ def get_wall_collision_angle(agent: dict,
     return collision_angles
 
 
-def calculate_angle(line: Line,
+def calculate_angle(line,
                     agent: dict):
     """
     Calculate the angle of collision between the agent and the wall
@@ -233,6 +233,7 @@ def get_position_line_intersection(a1, a2, b1, b2):
             return (px, py)
         return None
 
+
 def atan2(x, y):
     """Extends the inverse tangent function to all four quadrants."""
     if x == 0:
@@ -244,6 +245,7 @@ def atan2(x, y):
         return np.arctan(float(y / x))
     else:
         return np.sign(y) * (np.pi - np.arctan(abs(float(y / x))))
+
 
 def circle_intersectoins(circle_1_points, circle_2_points):
     """
@@ -264,6 +266,7 @@ def circle_intersectoins(circle_1_points, circle_2_points):
     intersection_points = [(point.x, point.y) for point in [point.evalf() for point in intersection_points]]
     return intersection_points
 
+
 # check if a point lies on a line defined by two points using sympy
 def point_on_line(point, line):
     """
@@ -283,6 +286,7 @@ def point_on_line(point, line):
     # check if the point lies on the line
     return line.contains(point)
 
+
 def circle_line_intersection(circle, line):
     """
     Check if a circle intersects a line defined by two points.
@@ -299,31 +303,34 @@ def circle_line_intersection(circle, line):
     # return True if the distance is less than the radius of the circle
     return distance <= circle[2]
 
+
 # agent belief ellipse
 def draw_belief_ellipse(surface, bel_cov, bel_pos_x, bel_pos_y, scale):
     # draw the belief covariance ellipse
     if bel_cov is not None:
-        cov = bel_cov[:2, :2] # asusmption always a diagonal matrix
+        cov = bel_cov[:2, :2]  # asusmption always a diagonal matrix
         eigvals, eigvecs = np.linalg.eig(cov)
         # Find major and minor axes lengths
         major_axis = scale * np.sqrt(eigvals[0])
         minor_axis = scale * np.sqrt(eigvals[1])
         angle = np.degrees(np.arctan2(eigvecs[1, 0], eigvecs[0, 0]))
-        ellipse_rect = pygame.Rect((0,0,major_axis,minor_axis))
-        ellipse_surface = pygame.Surface(ellipse_rect.size,pygame.SRCALPHA)
+        ellipse_rect = pygame.Rect((0, 0, major_axis, minor_axis))
+        ellipse_surface = pygame.Surface(ellipse_rect.size, pygame.SRCALPHA)
         pygame.draw.ellipse(ellipse_surface, (240, 90, 90), (0, 0, major_axis, minor_axis), 5)
         ellipse_surface = pygame.transform.rotate(ellipse_surface, angle)
-        surface.blit(ellipse_surface, ellipse_surface.get_rect(center = (bel_pos_x,bel_pos_y)))
+        surface.blit(ellipse_surface, ellipse_surface.get_rect(center=(bel_pos_x, bel_pos_y)))
 
-def add_control_noise(controls,alpha = [0.0, 0.0, 0.0, 0.0]):
+
+def add_control_noise(controls, alpha=[0.0, 0.0, 0.0, 0.0]):
     """adds noise to the control inputs.
     Args:
         v (float): The forward velocity.
         w (float): The angular velocity.
     Returns:
         tuple: The control inputs with added noise.
+        :param alpha:
     """
-    #controls = [v, w]
+    # controls = [v, w]
     # zero cebtred gaussian noise where the standard deviation is proportional to the control inputs
     # alphas are global parameters
     vel_noise = np.random.normal(0, alpha[0] * np.abs(controls[0]) + alpha[1] * np.abs(controls[1]))
@@ -332,17 +339,7 @@ def add_control_noise(controls,alpha = [0.0, 0.0, 0.0, 0.0]):
     controls[1] += angular_noise
     return controls
 
-# def line_line_intersections(line1, line2):
-#     # define env_line
-#     env_line = sp.Line(sp.Point(line1[0][0], line1[0][1]), sp.Point(line1[1][0], line1[1][1]))
-#     l2 = sp.Line(sp.Point(line2[0][0], line2[0][1]), sp.Point(line2[1][0], line2[1][1]))
-#     intersection = env_line.intersection(l2)
-#     # get the coordinates of the intersection point as a tuple of floats
-#     if len(intersection) == 1 and isinstance(intersection[0], sp.Point):
-#         return (float(intersection[0].x), float(intersection[0].y))
-#     return None
 def line_line_intersections(line1, line2):
-
     line1 = LineString(line1)
     line2 = LineString(line2)
 
@@ -357,5 +354,3 @@ def line_line_intersections(line1, line2):
         return intersection[0].x, intersection[0].y
     else:
         return None
-
-

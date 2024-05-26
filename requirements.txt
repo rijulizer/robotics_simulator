@@ -3,4 +3,4 @@ pygame==2.5.2
 sympy==1.12
 matplotlib==3.8.4
 PyQt5==5.15.10
-
+shapely==2.0.4

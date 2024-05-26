@@ -3,8 +3,8 @@ import pygame
 from pygame import Surface
 
 from src.agent.sensor import SensorManager
-from src.utils import circle_intersectoins, atan2, add_control_noise
-from src.filters import kalman_filter
+from src.utils.utils import circle_intersectoins, atan2
+from src.utils.filters import kalman_filter
 
 HANDLE_SENSORDATA_MEMORIZE = True
 
