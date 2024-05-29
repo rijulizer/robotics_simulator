@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 from init.utils.utils import _init_GUI
 from src.agent.network import NetworkFromWeights
@@ -154,7 +155,7 @@ class GeneticAlgorithm:
                                                                            num_sensor,
                                                                            sensor_length)
 
-                    dust_remains = run_network_simulation(delta_t,
+                    dust_collected,delta_velocity,num_avg_collision = run_network_simulation(delta_t,
                                                           max_time_steps,
                                                           network,
                                                           agent,
@@ -163,7 +164,7 @@ class GeneticAlgorithm:
                                                           env,
                                                           font)
 
-                    chromo["fitness"] = -dust_remains
+                    chromo["fitness"] = np.dot([0.5,0.1,-0.5],[dust_collected,delta_velocity,num_avg_collision])
 
 
                 for chromo in population:
