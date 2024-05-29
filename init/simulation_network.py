@@ -28,6 +28,7 @@ def run_network_simulation(
     time_step = 0
     # initialize delyaed model output
     model_op = None
+    agent_track = []
     while sim_run and time_step < max_time_steps:
 
         for event in pygame.event.get():
@@ -51,7 +52,8 @@ def run_network_simulation(
                            time_step,
                            False
                            )
-
+        # keep agents path
+        agent_track.append((round(agent.pos_x,1), round(agent.pos_y,1)))
         if not success:
             delta_t_curr -= 0.1
         else:
@@ -61,8 +63,10 @@ def run_network_simulation(
         time_step += 1
 
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
-
+    # return entities for fitness function 
     final_dust_q = len(env.dust.group)
-    dust_remains = np.round(((initial_dust_q - final_dust_q) / initial_dust_q), 2)
+    dust_collect = np.round(((initial_dust_q - final_dust_q) / initial_dust_q), 3)
+    unique_positions = np.round(len(set(agent_track))/ max_time_steps, 3)
+
     pygame.quit()
-    return dust_remains
+    return dust_collect, unique_positions

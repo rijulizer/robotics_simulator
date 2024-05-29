@@ -1,4 +1,5 @@
 import random
+from pprint import pprint
 
 from init.utils.utils import _init_GUI
 from src.agent.network import NetworkFromWeights
@@ -154,7 +155,7 @@ class GeneticAlgorithm:
                                                                            num_sensor,
                                                                            sensor_length)
 
-                    dust_remains = run_network_simulation(delta_t,
+                    dust_collect, unique_positions = run_network_simulation(delta_t,
                                                           max_time_steps,
                                                           network,
                                                           agent,
@@ -163,11 +164,10 @@ class GeneticAlgorithm:
                                                           env,
                                                           font)
 
-                    chromo["fitness"] = -dust_remains
+                    chromo["fit_dust_collect"] = dust_collect
+                    chromo["fit_uniqe_pos"] = unique_positions
 
-
-                for chromo in population:
-                    print(chromo)
+                    pprint(chromo)
 
 
                 best_sample = max(population, key=self.fitness)
