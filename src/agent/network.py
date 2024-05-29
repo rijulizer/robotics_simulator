@@ -36,7 +36,7 @@ class NetworkFromWeights(Module):
         for i in range(self.num_layers):
             x = self.layers[i](x)
             x = self.activations[i](x)
-        x = x.detach().numpy() * self.v_max - 5 # output_shape = [1,2]
+        x = x * self.v_max - 5 # output_shape = [1,2]
         return x 
 
     def get_weights_biases(self, raw_genes: np.ndarray):
@@ -120,4 +120,5 @@ if __name__ == "__main__":
         output = model.forward(input, delayed_outputs)
         delayed_outputs = output
         print(output, output.shape, type(output), input.shape, type(input))
+    
     
