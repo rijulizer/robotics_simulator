@@ -1,5 +1,6 @@
 import random
 from pprint import pprint
+import numpy as np
 
 from init.utils.utils import _init_GUI
 from src.agent.network import NetworkFromWeights
@@ -163,6 +164,8 @@ class GeneticAlgorithm:
                         dust_collect, 
                         unique_positions, 
                         energy_used,
+                        delta_velocity, 
+                        num_avg_collision
                     )   = run_network_simulation(delta_t,
                                                           max_time_steps,
                                                           network,
@@ -175,8 +178,8 @@ class GeneticAlgorithm:
                     chromo["fit_dust_collect"] = dust_collect
                     chromo["fit_uniqe_pos"] = unique_positions
                     chromo["fit_energy_used"] = energy_used
-
-
+                    chromo["fit_delta_vel"] = delta_velocity
+                    chromo["fit_num_collisions"] = num_avg_collision
                     pprint(chromo)
 
 
