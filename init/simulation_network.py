@@ -5,6 +5,7 @@ import pygame
 import numpy as np
 from src.agent.network import NetworkFromWeights
 
+MAX_VELOCITY = 5.0
 
 def run_network_simulation(
         delta_t: float,
@@ -29,6 +30,7 @@ def run_network_simulation(
     # initialize delyaed model output
     model_op = None
     agent_track = []
+    agent_energy = []
     while sim_run and time_step < max_time_steps:
 
         for event in pygame.event.get():
@@ -52,8 +54,11 @@ def run_network_simulation(
                            time_step,
                            False
                            )
-        # keep agents path
+        # track agents path
         agent_track.append((round(agent.pos_x,1), round(agent.pos_y,1)))
+        # track agent's normalised energy use
+        agent_energy.append((abs(vl) + abs(vr)) / 2 * MAX_VELOCITY)
+
         if not success:
             delta_t_curr -= 0.1
         else:
@@ -66,7 +71,8 @@ def run_network_simulation(
     # return entities for fitness function 
     final_dust_q = len(env.dust.group)
     dust_collect = np.round(((initial_dust_q - final_dust_q) / initial_dust_q), 3)
-    unique_positions = np.round(len(set(agent_track))/ max_time_steps, 3)
+    unique_positions = np.round(len(set(agent_track)) / max_time_steps, 3)
+    energy_used = np.round(sum(agent_energy) / max_time_steps, 3)
 
     pygame.quit()
-    return dust_collect, unique_positions
+    return dust_collect, unique_positions, energy_used

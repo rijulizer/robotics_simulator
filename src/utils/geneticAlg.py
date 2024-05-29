@@ -5,7 +5,7 @@ from init.utils.utils import _init_GUI
 from src.agent.network import NetworkFromWeights
 from init.simulation_network import run_network_simulation
 
-
+MAX_VELOCITY = 5.0
 class GeneticAlgorithm:
 
     def __init__(self,
@@ -149,13 +149,17 @@ class GeneticAlgorithm:
             while generation < self.GEN_MAX:
                 # Evaluate our population (Calculate fitness)
                 for chromo in population:
-                    network = NetworkFromWeights(chromo["Gen"], v_max=10.0)
+                    network = NetworkFromWeights(chromo["Gen"], MAX_VELOCITY * 2)
                     # Run simulation
                     win, environment_surface, agent, font, env = _init_GUI(num_landmarks,
                                                                            num_sensor,
                                                                            sensor_length)
 
-                    dust_collect, unique_positions = run_network_simulation(delta_t,
+                    (
+                        dust_collect, 
+                        unique_positions, 
+                        energy_used,
+                    )   = run_network_simulation(delta_t,
                                                           max_time_steps,
                                                           network,
                                                           agent,
@@ -166,6 +170,8 @@ class GeneticAlgorithm:
 
                     chromo["fit_dust_collect"] = dust_collect
                     chromo["fit_uniqe_pos"] = unique_positions
+                    chromo["fit_energy_used"] = energy_used
+
 
                     pprint(chromo)
 
