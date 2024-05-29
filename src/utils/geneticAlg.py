@@ -44,6 +44,10 @@ class GeneticAlgorithm:
     def fitness(self, chromosome):
         if chromosome["fitness"] == -1:
             raise ValueError("Fitness not calculated")
+        dust_collect = chromosome["fit_dust_collect"]
+        unique_positions = chromosome["fit_uniqe_pos"] 
+        energy_used  = chromosome["fit_energy_used"]
+        chromosome["fitness"] = dust_collect + unique_positions + energy_used
         return chromosome["fitness"]
 
     # Tournament Selection
