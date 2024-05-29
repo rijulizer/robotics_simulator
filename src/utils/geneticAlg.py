@@ -140,7 +140,7 @@ class GeneticAlgorithm:
 
             # Initialize simulation parameters
             num_landmarks = 0
-            num_sensor = 14
+            num_sensor = 12
             sensor_length = 100
             delta_t = 1
             max_time_steps = 1000
@@ -148,7 +148,7 @@ class GeneticAlgorithm:
             while generation < self.GEN_MAX:
                 # Evaluate our population (Calculate fitness)
                 for chromo in population:
-                    network = NetworkFromWeights(chromo["Gen"], 10)
+                    network = NetworkFromWeights(chromo["Gen"], v_max=10.0)
                     # Run simulation
                     win, environment_surface, agent, font, env = _init_GUI(num_landmarks,
                                                                            num_sensor,

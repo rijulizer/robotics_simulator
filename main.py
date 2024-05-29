@@ -32,7 +32,7 @@ sensor_length = 150
 params = {
     "POP_SIZE": 100,
     "CHROMOSOME_LENGTH": 240,
-    "GEN_MAX": 100,
+    "GEN_MAX": 10,
     "SELECTION_PARAM": {
         "type": "tournament",
         "num_individuals": 20,

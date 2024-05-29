@@ -28,14 +28,16 @@ class NetworkFromWeights(Module):
         self.activations = ModuleList(self.activations)
         self.v_max = v_max
 
-    def forward(self, x):
+    def forward(self, x, delayed_outputs=None):
+        if delayed_outputs is None:
+            delayed_outputs = torch.zeros((1,2), dtype=x.dtype, device=x.device)
+        # concat delayed inputs to the raw input 
+        x = torch.cat((x, delayed_outputs), dim=1)
         for i in range(self.num_layers):
             x = self.layers[i](x)
             x = self.activations[i](x)
-        x = x.detach().numpy()
-        vr = x[0] * self.v_max - 5
-        vl = x[1] * self.v_max - 5
-        return vl, vr
+        x = x * self.v_max - 5 # output_shape = [1,2]
+        return x 
 
     def get_weights_biases(self, raw_genes: np.ndarray):
         """ Decode weights and biases from raw genes
@@ -101,10 +103,22 @@ if __name__ == "__main__":
     # op = model.forward(input)
     # print(f"genes: {genes.shape}, weights: {model.weights[0].shape}, biases: {model.biases[0].shape}, input: {input.shape}, output: {op.shape}")
 
-    # test decode genes
+    # # test decode genes
+    # genes = '01111111' * 30  # Example with a 240-bit binary string filled with zeros
+    # model = NetworkFromWeights(genes)
+    # input = torch.ones(1, 14)
+    # output = model.forward(input)
+    # print(output[0], output[1])
+    # print(output.shape, type(output), input.shape, type(input))
+
+    # # test delayed output 
     genes = '01111111' * 30  # Example with a 240-bit binary string filled with zeros
     model = NetworkFromWeights(genes)
-    input = torch.ones(1, 14)
-    output = model.forward(input)
-
-    print(output)
+    delayed_outputs = None
+    for i in range(1):
+        input = torch.ones(1, 12)
+        output = model.forward(input, delayed_outputs)
+        delayed_outputs = output
+        print(output, output.shape, type(output), input.shape, type(input))
+    
+    

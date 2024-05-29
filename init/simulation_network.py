@@ -26,15 +26,20 @@ def run_network_simulation(
     sim_run = True
     freeze = False
     time_step = 0
+    # initialize delyaed model output
+    model_op = None
     while sim_run and time_step < max_time_steps:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sim_run = False
-
+        
         # get the output from the network
-        sensor_data = np.array([s.sensor_text for s in agent.sensor_manager.sensors], dtype=np.float32)
-        vl, vr = network.forward(torch.from_numpy(sensor_data))
+        sensor_data = np.array([s.sensor_text for s in agent.sensor_manager.sensors], dtype=np.float32).reshape(1, -1)
+        model_op = network.forward(torch.from_numpy(sensor_data), model_op)
+        # extarct wheel speed from the model output
+        vl = model_op.detach().numpy()[0][0]
+        vr = model_op.detach().numpy()[0][1]
 
         # core logic starts here
         success = simulate(agent,
