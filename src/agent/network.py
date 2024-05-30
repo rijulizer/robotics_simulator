@@ -1,5 +1,5 @@
 import torch
-from torch.nn import Module, Parameter, ModuleList, Linear, Sigmoid
+from torch.nn import Module, Parameter, ModuleList, Linear, Sigmoid, ReLU
 
 import numpy as np
 
@@ -21,7 +21,7 @@ class NetworkFromWeights(Module):
         self.num_layers = len(weights)
         for i in range(self.num_layers):
             self.layers.append(Linear(weights[i].shape[0], weights[i].shape[1]))
-            self.activations.append(Sigmoid())
+            self.activations.append(ReLU()) #Sigmoid()
             self.layers[i].weight.data = Parameter(torch.tensor(weights[i], dtype=torch.float32).T)
             self.layers[i].bias.data = Parameter(torch.tensor(biases[i], dtype=torch.float32).T)
         self.layers = ModuleList(self.layers)
@@ -36,7 +36,8 @@ class NetworkFromWeights(Module):
         for i in range(self.num_layers):
             x = self.layers[i](x)
             x = self.activations[i](x)
-        x = x * self.v_max - 5 # output_shape = [1,2]
+        # clamp the output to the range of [-5, 5]
+        x = torch.clamp(x, min=0, max=1) * self.v_max - 5
         return x 
 
     def get_weights_biases(self, raw_genes: np.ndarray):
