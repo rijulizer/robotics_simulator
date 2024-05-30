@@ -84,5 +84,6 @@ def simulate(agent: Agent,
     agent.sensor_manager.scan_landmarks(env_landmarks, time_step)
 
     # Apply filter
-    agent.apply_filter(v, w, delta_t_curr)
+    # if agent.filter:
+    #     agent.apply_filter(v, w, delta_t_curr)
     return result

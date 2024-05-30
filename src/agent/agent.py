@@ -19,12 +19,15 @@ class Agent:
                  pos_x: float,
                  pos_y: float,
                  radius: int,
-                 theta: float
+                 theta: float,
+                 filter: bool,
+                 color : tuple = (50, 150, 230),
                  ):
         # Changeable Components
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.theta = theta
+        self.filter = filter
 
         # initial belief with known correspondence
         self.bel_pos_x = pos_x
@@ -38,11 +41,13 @@ class Agent:
         self.radius = radius
 
         # Gui Components
-        self.color = (255, 140, 0)
+        self.color = color #(50, 150, 230)# (36, 202, 223)
+        self.map_color = color #(50, 50, 230)# (57, 36, 223)
         self.line = None
         self.body = None
         self.sensor_manager = None
         self.guided_line = None
+        self.track = []
 
         self.bel_cov = np.diag(np.random.rand(3))
         self.map = {
@@ -95,7 +100,7 @@ class Agent:
             self.pos_x = new_pos[0]
             self.pos_y = new_pos[1]
             self.theta = new_pos[2]
-
+        self.track.append((self.pos_x, self.pos_y))
         # update belief
         return v, w
 
@@ -148,7 +153,7 @@ class Agent:
             # Guided Line
             self.guided_line = (
                 self.pos_x + v * np.cos(beta) * delta_t * 50, self.pos_y + v * np.sin(beta) * delta_t * 50)
-
+        self.track.append((self.pos_x, self.pos_y))
         return v, w
 
     def get_agent_stats(self):
@@ -215,6 +220,10 @@ class Agent:
             # draw line from agent to the landmark
             pygame.draw.line(surface, (248, 228, 35), (self.pos_x, self.pos_y), (landmark["x"], landmark["y"]),
                                 width=3)
+        # refresh and draw only the last 10 points
+        for point in self.track[-60::3]:
+            # draw agents path on the map
+            pygame.draw.circle(surface, self.map_color, point, 2)
 
     def get_sensor_measurement(self):
         """
@@ -263,22 +272,22 @@ class Agent:
         self.est_bel_pos_x = pred_mean[0]
         self.est_bel_pos_y = pred_mean[1]
     
-    def create_map(self, surface):
+    def create_map(self, surface, draw: bool = True):
         # get the landmarks
         self.map['landmarks'] = self.sensor_manager.map_landmarks
         # get the environment points as the agent moves
         #TODO: the agent covariances matrix should affect this
         self.map['env_points'].extend(self.sensor_manager.map_env_points) 
         self.map['env_points'] = list(set(self.map['env_points']))
-        print(f"[debug] Map: {len(self.map['landmarks']), len(self.map['env_points'])}")
-        
-        # draw map landmarks
-        for landmark in self.map['landmarks'].values():
-            pygame.draw.circle(surface, (76, 36, 223), (MAP_OFFSET_X + landmark['x'], MAP_OFFSET_Y + landmark['y']), 6)
-        # draw map env points
-        for point in self.map['env_points']:
-            pygame.draw.circle(surface, (22, 132, 233), (MAP_OFFSET_X + point[0], MAP_OFFSET_Y + point[1]), 3)
-        
+        # print(f"[debug] Map: {len(self.map['landmarks']), len(self.map['env_points'])}")
+        if draw:
+            # draw map landmarks
+            for landmark in self.map['landmarks'].values():
+                pygame.draw.circle(surface, self.map_color, (MAP_OFFSET_X + landmark['x'], MAP_OFFSET_Y + landmark['y']), 6)
+            # draw map env points
+            for point in self.map['env_points']:
+                pygame.draw.circle(surface, self.map_color, (MAP_OFFSET_X + point[0], MAP_OFFSET_Y + point[1]), 3)
+            
 # if __name__ == "__main__":
 #     # define agent
 #     pos_x = 200
