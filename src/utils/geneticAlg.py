@@ -180,13 +180,20 @@ class GeneticAlgorithm:
 
         while generation < self.GEN_MAX:
             with Pool(multiprocessing.cpu_count()) as pool:
-                results = pool.map(self.simulate_chromosome, population)
+                # Iterate by batches of 100
+                for i in range(0, len(population), 100):
+                    results = pool.map(self.simulate_chromosome, population[i:i + 100])
+                    for j, (chromo, fitness, r) in enumerate(results):
+                        population[i + j]["Gen"] = chromo
+                        population[i + j]["fitness"] = fitness
+                        population[i + j]["results"] = r
+                    progress_bar.update(len(results))
             # results = [self.simulate_chromosome(chromo) for chromo in population]
-            for i, (chromo, fitness, r) in enumerate(results):
-                population[i]["Gen"] = chromo
-                population[i]["fitness"] = fitness
-                population[i]["results"] = r
-            progress_bar.update(len(results))
+            # for i, (chromo, fitness, r) in enumerate(results):
+            #     population[i]["Gen"] = chromo
+            #     population[i]["fitness"] = fitness
+            #     population[i]["results"] = r
+            # progress_bar.update(len(results))
 
             best_samples = heapq.nlargest(20, population, key=lambda x: self.fitness(x))
             with open('src/data/genEvo/genetic_algorithm_results_1.txt', 'a') as file:
@@ -203,18 +210,6 @@ class GeneticAlgorithm:
 
             while len(new_generation) < self.POP_SIZE:
                 parent1, parent2 = random.sample(population, 2)
-                # Check if parents are not in the array
-                parent1_flag = False
-                parent2_flag = False
-                for i in range(len(new_generation)):
-                    if parent1['Gen'] == new_generation[i]['Gen']:
-                        parent1_flag = True
-                    if parent2['Gen'] == new_generation[i]['Gen']:
-                        parent2_flag = True
-                if not parent1_flag:
-                    new_generation.append(parent1)
-                if not parent2_flag:
-                    new_generation.append(parent2)
                 child1, child2 = self.crossover(parent1["Gen"], parent2["Gen"])
                 new_generation.append(self.mutate(child1))
                 new_generation.append(self.mutate(child2))

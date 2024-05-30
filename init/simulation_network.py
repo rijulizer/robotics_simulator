@@ -103,14 +103,15 @@ def run_network_simulation(
     # energy_used = np.round(energy_used / max_time_steps, 3)
     # rotation_measure = np.round(rotation_measure/max_time_steps, 3)
     # fitness_param_collision = np.round(((np.abs(np.array(fitness_param_collision)) > 0.8).sum() / max_time_steps), 3)
-    dust_collect = np.round((initial_dust_q - len(env.dust.group)), 3)
+    dust_collect = np.round((initial_dust_q - len(env.dust.group) / initial_dust_q), 3)
     unique_positions = 0
     energy_used = 0
     rotation_measure = 0
     fitness_param_collision = 0
-    
+
+    fitness = dust_collect + (constant_reward/3) + (time_step / 10000)
 
 
     pygame.quit()
-    return dust_collect+constant_reward, unique_positions, energy_used, rotation_measure, fitness_param_collision
+    return fitness, unique_positions, energy_used, rotation_measure, fitness_param_collision
 
