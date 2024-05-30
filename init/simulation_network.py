@@ -1,4 +1,4 @@
-from init.utils.utils import draw_all_network
+from init.utils.utils import draw_all_network, draw_all
 from src.utils.engine import simulate
 import torch
 import pygame
@@ -15,7 +15,8 @@ def run_network_simulation(
         win=None,
         environment_surface=None,
         env=None,
-        font=None
+        font=None,
+        display=False
 ):
     # initialize
     initial_dust_q = len(env.dust.group)
@@ -70,7 +71,10 @@ def run_network_simulation(
         rotation_measure += (abs(vl-vr) /  (2 * MAX_VELOCITY))
         fitness_param_collision.append(np.min(sensor_data))
 
-        draw_all_network(win, agent, env)
+        if display:
+            draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
+        else:
+            draw_all_network(win, agent, env)
     # return entities for fitness function 
     dust_collect = np.round(((initial_dust_q - len(env.dust.group)) / initial_dust_q), 3)
     unique_positions = np.round(len(set(agent_track)) / max_time_steps, 3)

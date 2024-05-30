@@ -1,7 +1,7 @@
 from init import simulation_saved, simulation, simulation_network
 from src.utils.geneticAlg import GeneticAlgorithm
-# from src.agent.network import NetworkFromWeights
-# from init.utils.utils import _init_GUI
+from src.agent.network import NetworkFromWeights
+from init.utils.utils import _init_GUI
 import warnings
 
 # Filter out specific UserWarning regarding the use of `.T` on tensors
@@ -35,7 +35,7 @@ sensor_length = 150
 params = {
     "POP_SIZE": 100,
     "CHROMOSOME_LENGTH": 240,
-    "GEN_MAX": 100,
+    "GEN_MAX": 50,
     "SELECTION_PARAM": {
         "type": "tournament",
         "num_individuals": 20,
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
 # Run the network simulation
 
-# chromosome = "011101110011101000110011001001100111000000011011011101010001011110110110000101000111100010000100111001001011111111101011010100111111000111010001111101000101100011110010100110001000111010110111010111111111011001110111111010011100111001011001"
+# chromosome = "111111001010001011001000010111101111011001010110000001110001101100101111111101100000100011111011100011010110110111111101111010110000111011101111011101011001111001001101101000010010001000011111101011001011000011100100111101110100111010101010"
 #
 # network = NetworkFromWeights(chromosome, v_max=10.0)
 # # Run simulation
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 #                                                        num_sensor,
 #                                                        sensor_length)
 #
-# max_time_steps = 10000000000
+# max_time_steps = 500
 # dust_remains = simulation_network.run_network_simulation(delta_t,
 #                                                          max_time_steps,
 #                                                          network,
@@ -84,4 +84,5 @@ if __name__ == '__main__':
 #                                                          win,
 #                                                          environment_surface,
 #                                                          env,
-#                                                          font)
+#                                                          font,
+#                                                          True)

@@ -59,7 +59,7 @@ class GeneticAlgorithm:
         weights = np.array([8.0, 6.0, 3.0, 5.0, 6.0, 10.0])
         fitness_features = np.array(
             [dust_collect, unique_positions, 1 - energy_used, 1 - rotation_measure, 1 - num_avg_collision, ((1 - rotation_measure) * (1 - num_avg_collision))])
-        return float(np.average(fitness_features, weights=weights))
+        return float(np.average(fitness_features, weights=weights)), fitness_features
 
     # Tournament Selection
     def _tournament_selection(self, population):
@@ -154,7 +154,7 @@ class GeneticAlgorithm:
         num_sensor = 12
         sensor_length = 100
         delta_t = 1
-        max_time_steps = 500
+        max_time_steps = 1500
 
         network = NetworkFromWeights(chromo["Gen"], MAX_VELOCITY * 2)
         win, environment_surface, agent, font, env = _init_GUI(num_landmarks, num_sensor, sensor_length,
@@ -177,14 +177,15 @@ class GeneticAlgorithm:
         while generation < self.GEN_MAX:
             with Pool(multiprocessing.cpu_count()) as pool:
                 results = pool.map(self.simulate_chromosome, population)
-            for i, fitness in enumerate(results):
+            for i, (fitness, results) in enumerate(results):
                 population[i]["fitness"] = fitness
+                population[i]["results"] = results
                 progress_bar.update(1)
 
-            best_samples = heapq.nlargest(5, population, key=lambda x: self.fitness(x))
-            with open('src/data/genEvo/genetic_algorithm_results_1.txt', 'w') as file:
+            best_samples = heapq.nlargest(20, population, key=lambda x: self.fitness(x))
+            with open('src/data/genEvo/genetic_algorithm_results_1.txt', 'a') as file:
                 for sample in best_samples:
-                    file.write(f"Gen: {generation}, Best Sample: {sample}, Fitness: {self.fitness(sample)}\n")
+                    file.write(f"Gen: {generation}, Best Sample: {sample['Gen']}, Fitness: {sample['fitness']}, Result: {sample['results']}\n")
                 file.close()
 
             if self.fitness(best_samples[0]) >= 1:
