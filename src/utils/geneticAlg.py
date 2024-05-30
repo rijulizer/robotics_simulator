@@ -1,13 +1,19 @@
 import random
-from pprint import pprint
 import numpy as np
+import pygame
+import sys
+import multiprocessing
+from multiprocessing import Pool
 
 from init.utils.utils import _init_GUI
 from src.agent.network import NetworkFromWeights
 from init.simulation_network import run_network_simulation
+import tqdm.auto as tqdm
 import heapq
 
 MAX_VELOCITY = 5.0
+
+
 class GeneticAlgorithm:
 
     def __init__(self,
@@ -42,18 +48,18 @@ class GeneticAlgorithm:
     def random_chromosome(self):
         return {"Gen": ''.join(self.random_gene() for _ in range(self.CHROMOSOME_LENGTH)), "fitness": -1}
 
-    # Fitness function
-    def cal_fitness(self, chromosome):
-        
-        dust_collect = chromosome["fit_dust_collect"]
-        unique_positions = chromosome["fit_uniqe_pos"] 
-        energy_used  = chromosome["fit_energy_used"]
-        rotation_measure = chromosome["fit_rotation_measure"]
-        num_avg_collision =  chromosome["fit_num_collisions"]
-        weights = np.array([8.0, 6.0, 3.0, 5.0, 10.0])
-        fitness_features = np.array([dust_collect, unique_positions, 1-energy_used, 1-rotation_measure, 1-num_avg_collision])
-        chromosome["fitness"] = float(np.average(fitness_features, weights=weights))
+    def fitness(self, chromosome):
+        if chromosome["fitness"] == -1:
+            raise ValueError("Fitness not calculated")
         return chromosome["fitness"]
+
+    # Fitness function
+    def cal_fitness(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision):
+
+        weights = np.array([8.0, 6.0, 3.0, 5.0, 6.0, 10.0])
+        fitness_features = np.array(
+            [dust_collect, unique_positions, 1 - energy_used, 1 - rotation_measure, 1 - num_avg_collision, ((1 - rotation_measure) * (1 - num_avg_collision))])
+        return float(np.average(fitness_features, weights=weights))
 
     # Tournament Selection
     def _tournament_selection(self, population):
@@ -135,79 +141,75 @@ class GeneticAlgorithm:
 
     def mutate(self, chromosome):
         if self.MUTATION_PARAM['type'] == 'uniform':
-            return self._uniform_mutate(chromosome)
+            mutated = self._uniform_mutate(chromosome)
         elif self.MUTATION_PARAM['type'] == 'bit_flip':
-            return self._bit_flip_mutate(chromosome)
+            mutated = self._bit_flip_mutate(chromosome)
         else:
             raise ValueError("Invalid mutation type")
 
+        return {"Gen": mutated, "fitness": -1}
+
+    def simulate_chromosome(self, chromo):
+        num_landmarks = 0
+        num_sensor = 12
+        sensor_length = 100
+        delta_t = 1
+        max_time_steps = 500
+
+        network = NetworkFromWeights(chromo["Gen"], MAX_VELOCITY * 2)
+        win, environment_surface, agent, font, env = _init_GUI(num_landmarks, num_sensor, sensor_length,
+                                                               pygame_flags=pygame.HIDDEN)
+        results = run_network_simulation(delta_t, max_time_steps, network, agent, win, environment_surface, env, font)
+
+        return self.cal_fitness(*results)
+
     def genetic_algorithm(self):
+        # Open file to write the results
+        print("Number of CPUs: ", multiprocessing.cpu_count())
+
+        generation = 0
+
+        progress_bar = tqdm.tqdm(total=self.GEN_MAX * self.POP_SIZE, desc="Running Genetic Algorithm",
+                                 file=sys.stdout)
+
         population = [self.random_chromosome() for _ in range(self.POP_SIZE)]
 
-        # Open file to write the results
-        with open('src/data/genEvo/genetic_algorithm_results.txt', 'w') as file:
-            generation = 0
+        while generation < self.GEN_MAX:
+            with Pool(multiprocessing.cpu_count()) as pool:
+                results = pool.map(self.simulate_chromosome, population)
+            for i, fitness in enumerate(results):
+                population[i]["fitness"] = fitness
+                progress_bar.update(1)
 
-            # Initialize simulation parameters
-            num_landmarks = 0
-            num_sensor = 12
-            sensor_length = 100
-            delta_t = 1
-            max_time_steps = 500
-
-            while generation < self.GEN_MAX:
-                # Evaluate our population (Calculate fitness)
-                for chromo in population:
-                    network = NetworkFromWeights(chromo["Gen"], MAX_VELOCITY * 2)
-                    # Run simulation
-                    win, environment_surface, agent, font, env = _init_GUI(num_landmarks,
-                                                                           num_sensor,
-                                                                           sensor_length)
-
-                    (
-                        dust_collect, 
-                        unique_positions, 
-                        energy_used,
-                        rotation_measure, 
-                        num_avg_collision
-                    )   = run_network_simulation(delta_t,
-                                                max_time_steps,
-                                                network,
-                                                agent,
-                                                win,
-                                                environment_surface,
-                                                env,
-                                                font)
-
-                    chromo["fit_dust_collect"] = dust_collect
-                    chromo["fit_uniqe_pos"] = unique_positions
-                    chromo["fit_energy_used"] = energy_used
-                    chromo["fit_rotation_measure"] = rotation_measure
-                    chromo["fit_num_collisions"] = num_avg_collision
-                    op_fitness = self.cal_fitness(chromo)
-
-                    print(chromo, op_fitness)
-
-                best_samples = heapq.nlargest(5, population, key=self.fitness)
+            best_samples = heapq.nlargest(5, population, key=lambda x: self.fitness(x))
+            with open('src/data/genEvo/genetic_algorithm_results_1.txt', 'w') as file:
                 for sample in best_samples:
                     file.write(f"Gen: {generation}, Best Sample: {sample}, Fitness: {self.fitness(sample)}\n")
+                file.close()
 
-                if self.fitness(best_samples[0]) >= 1:
-                    break
+            if self.fitness(best_samples[0]) >= 1:
+                break
 
-                population = self.selection(population)
-                new_generation = []
+            population = self.selection(population)
+            new_generation = []
 
-                while len(new_generation) < self.POP_SIZE:
-                    parent1, parent2 = random.sample(population, 2)
-                    child1, child2 = self.crossover(parent1["Gen"], parent2["Gen"])
-                    new_generation.append(self.mutate(child1))
-                    new_generation.append(self.mutate(child2))
+            while len(new_generation) < self.POP_SIZE:
+                parent1, parent2 = random.sample(population, 2)
+                child1, child2 = self.crossover(parent1["Gen"], parent2["Gen"])
+                new_generation.append(self.mutate(child1))
+                new_generation.append(self.mutate(child2))
 
-                population = new_generation
-                # Reset fitness in population
-                for chromo in population:
-                    chromo["fitness"] = -1
-                generation += 1
+            population = new_generation
 
-        return best_samples
+            generation += 1
+
+        progress_bar.close()
+
+
+    def run_print(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision, final_fitness):
+        print(f"\nDust Collected: {dust_collect}")
+        print(f"Unique Positions: {unique_positions}")
+        print(f"Energy Used: {energy_used}")
+        print(f"Rotation Measure: {rotation_measure}")
+        print(f"Average Collision: {num_avg_collision}")
+        print(f"Final Fitness: {final_fitness}")

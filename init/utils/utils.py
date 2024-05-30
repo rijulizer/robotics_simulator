@@ -36,6 +36,13 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     # Refresh the window
     pygame.display.update()
 
+def draw_all_network(win, agent, env):
+
+
+    agent.draw(win)  # Draw agent components
+    env.dust.update(win, agent)
+
+
 
 def _init_GUI(num_landmarks,
               num_sensor,
