@@ -28,6 +28,7 @@ class NetworkFromWeights(Module):
         self.activations = ModuleList(self.activations)
         self.v_max = v_max
 
+
     def forward(self, x, delayed_outputs=None):
         if delayed_outputs is None:
             delayed_outputs = torch.zeros((1,2), dtype=x.dtype, device=x.device)

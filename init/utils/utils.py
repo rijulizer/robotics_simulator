@@ -4,6 +4,7 @@ from src.agent.sensor import SensorManager
 from src.GUI.environment import Environment
 from src.utils.utils import draw_belief_ellipse
 
+
 def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env):
     # Fill the window with white
     win.fill((255, 255, 255))
@@ -36,12 +37,10 @@ def draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step
     # Refresh the window
     pygame.display.update()
 
+
 def draw_all_network(win, agent, env):
-
-
     agent.draw(win)  # Draw agent components
     env.dust.update(win, agent)
-
 
 
 def _init_GUI(num_landmarks,
