@@ -22,7 +22,7 @@ class Environment:
         self.landmarks = None
         self.line_list = []
         self.init_environment(win)
-        self.dust = Dust((80, 61), 1, win.get_size())
+        self.dust = Dust((70, 60), 1, win.get_size())
 
     def init_environment(self, win):
         border_x, border_y = 100, 100

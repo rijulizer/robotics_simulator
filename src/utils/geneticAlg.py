@@ -155,7 +155,7 @@ class GeneticAlgorithm:
         num_landmarks = 0
         num_sensor = 12
         sensor_length = 100
-        delta_t = 2
+        delta_t = 1
         max_time_steps = 100000000000
 
         network = NetworkFromWeights_2(chromo["Gen"], MAX_VELOCITY * 2)
