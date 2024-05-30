@@ -105,7 +105,6 @@ class NetworkFromWeights_2(Module):
         for i in range(self.num_layers):
             x = self.layers[i](x)
             x = self.activations[i](x)
-            print("x", i, x.shape)
         # clamp the output to the range of [-5, 5]
         x = torch.clamp(x, min=0, max=1) * self.v_max - 5
         return x 

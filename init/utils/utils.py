@@ -70,8 +70,8 @@ def _init_GUI(num_landmarks,
     # put landmarks on the environment
     env.put_landmarks(environment_surface, num_landmarks)
     # define agent
-    pos_x = 200
-    pos_y = 200
+    pos_x = 150
+    pos_y = 150
     radius = 30
     theta = 1.57
 

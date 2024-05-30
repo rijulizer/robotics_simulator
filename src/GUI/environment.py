@@ -21,65 +21,54 @@ class Environment:
     def __init__(self, win):
         self.landmarks = None
         self.line_list = []
-        # define environment
-        border_x = 100
-        border_y = 100
-        border_len = 800
-        border_height = 600
-        border_width = 5
-        # define obstacle line-1
-        line_1_start_pos_x = border_x + int(border_len / 4)
-        line_1_end_pos_x = border_x + int(border_len / 4)
-        line_1_start_pos_y = border_y  # starts from the top
-        line_1_end_pos_y = int((border_y + border_height) - border_height / 3)
-        # define obstacle line-1
-        line_2_start_pos_x = border_x + 2 * int(border_len / 4)
-        line_2_end_pos_x = border_x + 2 * int(border_len / 4)
-        line_2_start_pos_y = border_y + border_height
-        line_2_end_pos_y = border_y + int(border_height / 3)
-        # define obstacle line-1
-        line_3_start_pos_x = border_x + 3 * int(border_len / 4)
-        line_3_end_pos_x = border_x + 3 * int(border_len / 4)
-        line_3_start_pos_y = border_y  # starts from the top
-        line_3_end_pos_y = int((border_y + border_height) - border_height / 3)
+        self.init_environment(win)
+        self.dust = Dust((100, 100), 1, win.get_size())
 
-        # define the rectangular border with lines
-        self.line_list.append(Line(win, border_x, border_y, border_x, border_y + border_height))
-        self.line_list.append(Line(win, border_x, border_y, border_x + border_len, border_y))
-        self.line_list.append(
-            Line(win, border_x + border_len, border_y, border_x + border_len, border_y + border_height))
-        self.line_list.append(
-            Line(win, border_x + border_len, border_y + border_height, border_x, border_y + border_height))
+    def init_environment(self, win):
+        border_x, border_y = 100, 100
+        border_len, border_height = 800, 600
+        border_width = 5  # Currently unused
 
-        # draw obstacle lines
-        self.line_list.append(Line(win, line_1_start_pos_x, line_1_start_pos_y, line_1_end_pos_x, line_1_end_pos_y))
-        self.line_list.append(Line(win, line_2_start_pos_x, line_2_start_pos_y, line_2_end_pos_x, line_2_end_pos_y))
-        self.line_list.append(Line(win, line_3_start_pos_x, line_3_start_pos_y, line_3_end_pos_x, line_3_end_pos_y))
-        # list of env joints points
-        self.points = [
-            [line_1_start_pos_x, line_1_start_pos_y],
-            [line_1_end_pos_x, line_1_end_pos_y],
-            [line_2_start_pos_x, line_2_start_pos_y],
-            [line_2_end_pos_x, line_2_end_pos_y],
-            [line_3_start_pos_x, line_3_start_pos_y],
-            [line_3_end_pos_x, line_3_end_pos_y],
-            [border_x, border_y],
-            [border_x, border_y + border_height],
-            [border_x, line_1_end_pos_y],
-            # [border_x, line_3_start_pos_y],
-            [border_x + border_len, border_y],
-            [border_x + border_len, border_y + border_height],
-            [line_1_start_pos_x, border_y + border_height],
-            [line_2_start_pos_x, line_1_end_pos_y],
-            [line_3_start_pos_x, border_y + border_height],
-            [line_1_start_pos_x, line_2_end_pos_y],
-            [line_3_start_pos_x, line_2_end_pos_y],
-            [border_x, line_2_end_pos_y],
-            [line_2_end_pos_x, border_y],
-            [border_x + border_len, line_2_end_pos_y],
-            [border_x + border_len, line_1_end_pos_y],
+        # Create border lines
+        self.create_border(win, border_x, border_y, border_len, border_height)
+
+        # Define obstacle lines
+        obstacle_positions = [1, 2, 3, 4, 5, 6, 7]  # Divisions of border for obstacle lines
+        for position in obstacle_positions:
+            self.create_obstacle_line(win, position, border_x, border_y, border_len, border_height)
+
+        # List of environment joint points
+        self.points = self.calculate_joint_points(border_x, border_y, border_len, border_height, obstacle_positions)
+
+    def create_border(self, win, x, y, length, height):
+        # Rectangular border creation
+        coordinates = [
+            (x, y, x, y + height),  # Left side
+            (x, y, x + length, y),  # Top side
+            (x + length, y, x + length, y + height),  # Right side
+            (x + length, y + height, x, y + height)  # Bottom side
         ]
-        self.dust = Dust((50, 70), 1, win.get_size())
+        for coord in coordinates:
+            self.line_list.append(Line(win, *coord))
+
+    def create_obstacle_line(self, win, division, border_x, border_y, border_len, border_height):
+        start_x = end_x = border_x + division * (border_len // 8)
+        if division % 2 == 1:
+            start_y, end_y = border_y, border_y + border_height - border_height // 6
+        else:
+            start_y, end_y = border_y + border_height, border_y + border_height // 6
+        self.line_list.append(Line(win, start_x, start_y, end_x, end_y))
+
+    def calculate_joint_points(self, x, y, length, height, positions):
+        points = [
+            [x, y], [x + length, y], [x, y + height], [x + length, y + height]
+        ]
+        for pos in positions:
+            points.extend([
+                [x + pos * (length // 8), y],
+                [x + pos * (length // 8), y + height - height // 6]
+            ])
+        return points
 
     def put_landmarks(self, win, number_of_landmarks=20):
         # put landmarks on the environment

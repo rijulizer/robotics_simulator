@@ -32,9 +32,9 @@ class Dust:
                  surface_size:tuple
                  ):
         surface_x,surface_y = surface_size
-        dust_density_x,dust_density_y = dust_density
-        dust_x_coordinates = [i for i in range(120,surface_x-100,dust_density_x)]
-        dust_y_coordinates = [i for i in range(120,surface_y-100,dust_density_y)]
+        dust_density_x, dust_density_y = dust_density
+        dust_x_coordinates = [i for i in range(150, surface_x-100, dust_density_x)]
+        dust_y_coordinates = [i for i in range(150, surface_y-100, dust_density_y)]
         self.group = []
         index = 0
         for x in dust_x_coordinates:

@@ -75,6 +75,8 @@ def run_simulation(
 
             if track:
                 tracker.append((vl, vr))
+        else:
+            print(f"Time step {time_step}")
 
         draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
 

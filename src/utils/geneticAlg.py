@@ -6,7 +6,7 @@ import multiprocessing
 from multiprocessing import Pool
 
 from init.utils.utils import _init_GUI
-from src.agent.network import NetworkFromWeights
+from src.agent.network import NetworkFromWeights, NetworkFromWeights_2
 from init.simulation_network import run_network_simulation
 import tqdm.auto as tqdm
 import heapq
@@ -153,10 +153,10 @@ class GeneticAlgorithm:
         num_landmarks = 0
         num_sensor = 12
         sensor_length = 100
-        delta_t = 1
-        max_time_steps = 1000
+        delta_t = 2
+        max_time_steps = 500
 
-        network = NetworkFromWeights(chromo["Gen"], MAX_VELOCITY * 2)
+        network = NetworkFromWeights_2(chromo["Gen"], MAX_VELOCITY * 2)
         win, environment_surface, agent, font, env = _init_GUI(num_landmarks, num_sensor, sensor_length,
                                                                pygame_flags=pygame.HIDDEN)
         results = run_network_simulation(delta_t, max_time_steps, network, agent, win, environment_surface, env, font)
@@ -189,7 +189,7 @@ class GeneticAlgorithm:
             best_samples = heapq.nlargest(20, population, key=lambda x: self.fitness(x))
             with open('src/data/genEvo/genetic_algorithm_results_1.txt', 'a') as file:
                 for sample in best_samples:
-                    file.write(f"Gen: {generation}, Best Sample: {sample['Gen']}, Fitness: {sample['fitness']}, Result: {sample['results']}\n")
+                    file.write(f"Gen: {generation}, Fitness: {sample['fitness']}, Result: {sample['results']}, Best Sample: {sample['Gen']}\n")
                 file.close()
 
             if self.fitness(best_samples[0]) >= 1:
