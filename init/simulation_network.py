@@ -36,7 +36,7 @@ def run_network_simulation(
     curr_dust_num = initial_dust_q
     while sim_run and time_step < max_time_steps:
 
-        if time_step % 20 == 0:
+        if time_step % 40 == 0:
             if curr_dust_num > len(env.dust.group):
                 curr_dust_num = len(env.dust.group)
             else:

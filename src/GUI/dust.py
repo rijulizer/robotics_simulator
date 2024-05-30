@@ -33,14 +33,20 @@ class Dust:
                  ):
         surface_x,surface_y = surface_size
         dust_density_x, dust_density_y = dust_density
-        dust_x_coordinates = [i for i in range(160, surface_x-100, dust_density_x)]
+        dust_x_coordinates = [i for i in range(150, surface_x-100, dust_density_x)]
         dust_y_coordinates = [i for i in range(150, surface_y-100, dust_density_y)]
         self.group = []
         index = 0
-        for x in dust_x_coordinates:
-            x_ = np.full(len(dust_y_coordinates),x)
+        count = 0
+        for i, x in enumerate(dust_x_coordinates):
+            if i % 2 == 1:
+                x += count
+                count += 50
+            else:
+                x += count
+            x_ = np.full(len(dust_y_coordinates), x)
             for pos in zip(x_, dust_y_coordinates):
-                self.group.append(DustParticle(pos,dust_size,surface_size,index))
+                self.group.append(DustParticle(pos, dust_size, surface_size, index))
                 index += 1
 
     def draw(self,
