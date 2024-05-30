@@ -33,9 +33,9 @@ class Environment:
         self.create_border(win, border_x, border_y, border_len, border_height)
 
         # Define obstacle lines
-        obstacle_positions = [1, 2, 3, 4, 5, 6, 7]  # Divisions of border for obstacle lines
+        obstacle_positions = [1, 2, 3]  # Divisions of border for obstacle lines
         for position in obstacle_positions:
-            self.create_obstacle_line(win, position, border_x, border_y, border_len, border_height)
+            self.create_obstacle_line(win, position, border_x, border_y, border_len, border_height, 4)
 
         # List of environment joint points
         self.points = self.calculate_joint_points(border_x, border_y, border_len, border_height, obstacle_positions)
@@ -51,12 +51,12 @@ class Environment:
         for coord in coordinates:
             self.line_list.append(Line(win, *coord))
 
-    def create_obstacle_line(self, win, division, border_x, border_y, border_len, border_height):
-        start_x = end_x = border_x + division * (border_len // 8)
+    def create_obstacle_line(self, win, division, border_x, border_y, border_len, border_height, space=6):
+        start_x = end_x = border_x + division * (border_len // space+2)
         if division % 2 == 1:
-            start_y, end_y = border_y, border_y + border_height - border_height // 6
+            start_y, end_y = border_y, border_y + border_height - border_height // space
         else:
-            start_y, end_y = border_y + border_height, border_y + border_height // 6
+            start_y, end_y = border_y + border_height, border_y + border_height // space
         self.line_list.append(Line(win, start_x, start_y, end_x, end_y))
 
     def calculate_joint_points(self, x, y, length, height, positions):

@@ -56,7 +56,8 @@ class GeneticAlgorithm:
     # Fitness function
     def cal_fitness(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision):
 
-        weights = np.array([16.0, 5.0, 3.0, 5.0, 6.0, 10.0])
+        weights = np.array([12.0, 5.0, 3.0, 5.0, 6.0, 10.0])
+        # weights = np.array([10.0, 1.0, 1.0, 1.0, 1.0, 2.0])
         fitness_features = np.array(
             [dust_collect, unique_positions, 1 - energy_used, 1 - rotation_measure, 1 - num_avg_collision, ((1 - rotation_measure) * (1 - num_avg_collision))])
         return float(np.average(fitness_features, weights=weights)), fitness_features
@@ -177,9 +178,9 @@ class GeneticAlgorithm:
         population = [self.random_chromosome() for _ in range(self.POP_SIZE)]
 
         while generation < self.GEN_MAX:
-            # with Pool(multiprocessing.cpu_count()) as pool:
-            #     results = pool.map(self.simulate_chromosome, population)
-            results = [self.simulate_chromosome(chromo) for chromo in population]
+            with Pool(multiprocessing.cpu_count()) as pool:
+                results = pool.map(self.simulate_chromosome, population)
+            # results = [self.simulate_chromosome(chromo) for chromo in population]
             for i, (chromo, fitness, r) in enumerate(results):
                 population[i]["Gen"] = chromo
                 population[i]["fitness"] = fitness
@@ -200,6 +201,8 @@ class GeneticAlgorithm:
 
             while len(new_generation) < self.POP_SIZE:
                 parent1, parent2 = random.sample(population, 2)
+                new_generation.append(parent1)
+                new_generation.append(parent2)
                 child1, child2 = self.crossover(parent1["Gen"], parent2["Gen"])
                 new_generation.append(self.mutate(child1))
                 new_generation.append(self.mutate(child2))
