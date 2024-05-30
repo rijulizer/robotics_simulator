@@ -5,6 +5,7 @@ import numpy as np
 from init.utils.utils import _init_GUI
 from src.agent.network import NetworkFromWeights
 from init.simulation_network import run_network_simulation
+import heapq
 
 MAX_VELOCITY = 5.0
 class GeneticAlgorithm:
@@ -187,10 +188,11 @@ class GeneticAlgorithm:
 
                     print(chromo, op_fitness)
 
+                best_samples = heapq.nlargest(5, population, key=self.fitness)
+                for sample in best_samples:
+                    file.write(f"Gen: {generation}, Best Sample: {sample}, Fitness: {self.fitness(sample)}\n")
 
-                best_sample = max(population, key=self.fitness)
-                file.write(f"Gen: {generation}, Best Sample: {best_sample}, Fitness: {self.cal_fitness(best_sample)}\n")
-                if self.cal_fitness(best_sample) == 1:
+                if self.fitness(best_samples[0]) >= 1:
                     break
 
                 population = self.selection(population)
@@ -208,4 +210,4 @@ class GeneticAlgorithm:
                     chromo["fitness"] = -1
                 generation += 1
 
-        return best_sample
+        return best_samples
