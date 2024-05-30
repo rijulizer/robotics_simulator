@@ -41,7 +41,15 @@ def run_network_simulation(
 
         # get the output from the network
         sensor_data = np.array([s.sensor_text for s in agent.sensor_manager.sensors], dtype=np.float32).reshape(1, -1)
-        model_op = network.forward(torch.from_numpy(sensor_data), model_op)
+
+        tau = 1
+        A = 1
+        alpha = 0.01
+        sensor_normalizer = lambda x: A + A * (alpha - 1) * (1 - np.exp(-x / tau))
+
+        sensor_input = np.array([sensor_normalizer(sensor) for sensor in sensor_data])
+
+        model_op = network.forward(torch.from_numpy(sensor_input), model_op)
         # extarct wheel speed from the model output
         vl = model_op.detach().numpy()[0][0]
         vr = model_op.detach().numpy()[0][1]
@@ -68,8 +76,8 @@ def run_network_simulation(
 
         # update the time ste
         time_step += 1
-        rotation_measure += (abs(vl-vr) /  (2 * MAX_VELOCITY))
-        fitness_param_collision.append(np.min(sensor_data))
+        rotation_measure += (abs(vl-vr) / (2 * MAX_VELOCITY))
+        fitness_param_collision.append(np.max(sensor_input))
 
         if display:
             draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
@@ -80,7 +88,7 @@ def run_network_simulation(
     unique_positions = np.round(len(set(agent_track)) / max_time_steps, 3)
     energy_used = np.round(energy_used / max_time_steps, 3)
     rotation_measure = np.round(rotation_measure/max_time_steps, 3)
-    fitness_param_collision = np.round(((np.abs(np.array(fitness_param_collision)) < 1.0).sum() / max_time_steps), 3)
+    fitness_param_collision = np.round(((np.abs(np.array(fitness_param_collision)) > 0.8).sum() / max_time_steps), 3)
     
 
 

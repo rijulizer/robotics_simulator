@@ -56,7 +56,7 @@ class GeneticAlgorithm:
     # Fitness function
     def cal_fitness(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision):
 
-        weights = np.array([8.0, 6.0, 3.0, 5.0, 6.0, 10.0])
+        weights = np.array([16.0, 5.0, 3.0, 5.0, 6.0, 10.0])
         fitness_features = np.array(
             [dust_collect, unique_positions, 1 - energy_used, 1 - rotation_measure, 1 - num_avg_collision, ((1 - rotation_measure) * (1 - num_avg_collision))])
         return float(np.average(fitness_features, weights=weights)), fitness_features
@@ -71,8 +71,8 @@ class GeneticAlgorithm:
 
     # Roulette Wheel Selection
     def _roulette_selection(self, population):
-        total_fitness = sum(self.cal_fitness(chromo) for chromo in population)
-        selection_probs = [self.cal_fitness(chromo) / total_fitness for chromo in population]
+        total_fitness = sum(self.fitness(chromo) for chromo in population)
+        selection_probs = [self.fitness(chromo) / total_fitness for chromo in population]
 
         selected = random.choices(
             population, weights=selection_probs, k=self.SELECTION_PARAM["num_individuals"]  # Select k individuals
@@ -154,14 +154,16 @@ class GeneticAlgorithm:
         num_sensor = 12
         sensor_length = 100
         delta_t = 1
-        max_time_steps = 1500
+        max_time_steps = 1000
 
         network = NetworkFromWeights(chromo["Gen"], MAX_VELOCITY * 2)
         win, environment_surface, agent, font, env = _init_GUI(num_landmarks, num_sensor, sensor_length,
                                                                pygame_flags=pygame.HIDDEN)
         results = run_network_simulation(delta_t, max_time_steps, network, agent, win, environment_surface, env, font)
 
-        return self.cal_fitness(*results)
+        fitness, features = self.cal_fitness(*results)
+
+        return chromo["Gen"], fitness, features
 
     def genetic_algorithm(self):
         # Open file to write the results
@@ -175,11 +177,13 @@ class GeneticAlgorithm:
         population = [self.random_chromosome() for _ in range(self.POP_SIZE)]
 
         while generation < self.GEN_MAX:
-            with Pool(multiprocessing.cpu_count()) as pool:
-                results = pool.map(self.simulate_chromosome, population)
-            for i, (fitness, results) in enumerate(results):
+            # with Pool(multiprocessing.cpu_count()) as pool:
+            #     results = pool.map(self.simulate_chromosome, population)
+            results = [self.simulate_chromosome(chromo) for chromo in population]
+            for i, (chromo, fitness, r) in enumerate(results):
+                population[i]["Gen"] = chromo
                 population[i]["fitness"] = fitness
-                population[i]["results"] = results
+                population[i]["results"] = r
                 progress_bar.update(1)
 
             best_samples = heapq.nlargest(20, population, key=lambda x: self.fitness(x))

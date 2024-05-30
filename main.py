@@ -8,7 +8,7 @@ import warnings
 warnings.filterwarnings("ignore",
                         message="The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release.")
 
-delta_t = 1
+delta_t = 10
 track = False
 num_landmarks = 0
 num_sensor = 12
@@ -35,11 +35,11 @@ sensor_length = 150
 params = {
     "POP_SIZE": 100,
     "CHROMOSOME_LENGTH": 240,
-    "GEN_MAX": 50,
+    "GEN_MAX": 10,
     "SELECTION_PARAM": {
-        "type": "tournament",
-        "num_individuals": 20,
-        "tournament_size": 5
+        "type": "roulette",
+        "num_individuals": 30,
+        "tournament_size": 10
     },
     "MUTATION_PARAM": {
         "type": "uniform",
