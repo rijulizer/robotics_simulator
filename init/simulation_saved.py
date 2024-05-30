@@ -43,7 +43,7 @@ def run_saved_simulation(
                         freeze = not freeze
 
         # core logic starts here
-        success = simulate(agent,
+        success, _ = simulate(agent,
                            vr,
                            vl,
                            delta_t_curr,

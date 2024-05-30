@@ -55,7 +55,7 @@ def run_simulation(
 
         # core logic starts here
         if not freeze:
-            success = simulate(agent,
+            success, _ = simulate(agent,
                                vr,
                                vl,
                                delta_t_curr,

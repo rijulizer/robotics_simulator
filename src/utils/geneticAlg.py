@@ -56,11 +56,12 @@ class GeneticAlgorithm:
     # Fitness function
     def cal_fitness(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision):
 
-        weights = np.array([12.0, 5.0, 3.0, 5.0, 6.0, 10.0])
-        # weights = np.array([10.0, 1.0, 1.0, 1.0, 1.0, 2.0])
+        # weights = np.array([10.0, 5.0, 3.0, 5.0, 6.0, 10.0])
+        weights = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         fitness_features = np.array(
             [dust_collect, unique_positions, 1 - energy_used, 1 - rotation_measure, 1 - num_avg_collision, ((1 - rotation_measure) * (1 - num_avg_collision))])
-        return float(np.average(fitness_features, weights=weights)), fitness_features
+        # return float(np.average(fitness_features, weights=weights)), fitness_features
+        return dust_collect, dust_collect
 
     # Tournament Selection
     def _tournament_selection(self, population):
@@ -75,10 +76,7 @@ class GeneticAlgorithm:
         total_fitness = sum(self.fitness(chromo) for chromo in population)
         selection_probs = [self.fitness(chromo) / total_fitness for chromo in population]
 
-        selected = random.choices(
-            population, weights=selection_probs, k=self.SELECTION_PARAM["num_individuals"]  # Select k individuals
-        )
-        return selected
+        return   random.choices(population, weights=selection_probs, k=self.SELECTION_PARAM["num_individuals"])
 
     def selection(self, population):
         if self.SELECTION_PARAM['type'] == 'tournament':
@@ -115,6 +113,8 @@ class GeneticAlgorithm:
         return child1, child2
 
     def crossover(self, parent1, parent2):
+        self.CROSSOVER_PARAM['type'] = random.choice(['one_point', 'two_point', 'uniform'])
+
         if self.CROSSOVER_PARAM['type'] == 'one_point':
             return self._one_point_crossover(parent1, parent2)
         elif self.CROSSOVER_PARAM['type'] == 'two_point':
@@ -123,6 +123,7 @@ class GeneticAlgorithm:
             return self._uniform_crossover(parent1, parent2)
         else:
             raise ValueError("Invalid crossover type")
+
 
     # Mutation - Uniform Mutation
     def _uniform_mutate(self, chromosome):
@@ -155,7 +156,7 @@ class GeneticAlgorithm:
         num_sensor = 12
         sensor_length = 100
         delta_t = 2
-        max_time_steps = 500
+        max_time_steps = 100000000000
 
         network = NetworkFromWeights_2(chromo["Gen"], MAX_VELOCITY * 2)
         win, environment_surface, agent, font, env = _init_GUI(num_landmarks, num_sensor, sensor_length,
@@ -185,7 +186,7 @@ class GeneticAlgorithm:
                 population[i]["Gen"] = chromo
                 population[i]["fitness"] = fitness
                 population[i]["results"] = r
-                progress_bar.update(1)
+            progress_bar.update(len(results))
 
             best_samples = heapq.nlargest(20, population, key=lambda x: self.fitness(x))
             with open('src/data/genEvo/genetic_algorithm_results_1.txt', 'a') as file:
@@ -198,11 +199,22 @@ class GeneticAlgorithm:
 
             population = self.selection(population)
             new_generation = []
+            new_generation.extend(best_samples)
 
             while len(new_generation) < self.POP_SIZE:
                 parent1, parent2 = random.sample(population, 2)
-                new_generation.append(parent1)
-                new_generation.append(parent2)
+                # Check if parents are not in the array
+                parent1_flag = False
+                parent2_flag = False
+                for i in range(len(new_generation)):
+                    if parent1['Gen'] == new_generation[i]['Gen']:
+                        parent1_flag = True
+                    if parent2['Gen'] == new_generation[i]['Gen']:
+                        parent2_flag = True
+                if not parent1_flag:
+                    new_generation.append(parent1)
+                if not parent2_flag:
+                    new_generation.append(parent2)
                 child1, child2 = self.crossover(parent1["Gen"], parent2["Gen"])
                 new_generation.append(self.mutate(child1))
                 new_generation.append(self.mutate(child2))

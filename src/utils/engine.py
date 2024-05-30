@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 from src.agent.agent import Agent
 from src.utils.utils import get_wall_collision_angle, get_collision_point_line, push_back_from_collision, seg_intersect
@@ -11,8 +13,9 @@ def simulate(agent: Agent,
              env_landmarks: list,
              time_step: int,
              apply_filter: bool
-             ) -> bool:
+             ) -> tuple[bool, bool]:
     result = True
+    collide = False
     # Current agent position
     curr_pos = agent.get_agent_stats()
 
@@ -27,6 +30,7 @@ def simulate(agent: Agent,
                                                 object_list)
 
     if collision_angles:
+        collide = True
         # Reset the agent position
         agent.set_agent_stats(curr_pos)
 
@@ -56,6 +60,7 @@ def simulate(agent: Agent,
                                               agent.get_agent_stats())
 
     if collision_line:
+        collide = True
         # Push back the agent from the collision intersection
         new_x, new_y = push_back_from_collision(agent.pos_x, agent.pos_y, agent.radius,
                                                 collision_line[0][0], collision_line[0][1], collision_line[0][0],
@@ -88,4 +93,4 @@ def simulate(agent: Agent,
     if apply_filter:
         agent.apply_filter(v, w, delta_t_curr)
 
-    return result
+    return result, collide
