@@ -42,13 +42,16 @@ class GeneticAlgorithm:
         return {"Gen": ''.join(self.random_gene() for _ in range(self.CHROMOSOME_LENGTH)), "fitness": -1}
 
     # Fitness function
-    def fitness(self, chromosome):
-        if chromosome["fitness"] == -1:
-            raise ValueError("Fitness not calculated")
+    def cal_fitness(self, chromosome):
+        
         dust_collect = chromosome["fit_dust_collect"]
         unique_positions = chromosome["fit_uniqe_pos"] 
         energy_used  = chromosome["fit_energy_used"]
-        chromosome["fitness"] = dust_collect + unique_positions + energy_used
+        rotation_measure = chromosome["fit_rotation_measure"]
+        num_avg_collision =  chromosome["fit_num_collisions"]
+        weights = np.array([8.0, 6.0, 3.0, 5.0, 10.0])
+        fitness_features = np.array([dust_collect, unique_positions, 1-energy_used, 1-rotation_measure, 1-num_avg_collision])
+        chromosome["fitness"] = float(np.average(fitness_features, weights=weights))
         return chromosome["fitness"]
 
     # Tournament Selection
@@ -61,8 +64,8 @@ class GeneticAlgorithm:
 
     # Roulette Wheel Selection
     def _roulette_selection(self, population):
-        total_fitness = sum(self.fitness(chromo) for chromo in population)
-        selection_probs = [self.fitness(chromo) / total_fitness for chromo in population]
+        total_fitness = sum(self.cal_fitness(chromo) for chromo in population)
+        selection_probs = [self.cal_fitness(chromo) / total_fitness for chromo in population]
 
         selected = random.choices(
             population, weights=selection_probs, k=self.SELECTION_PARAM["num_individuals"]  # Select k individuals
@@ -149,7 +152,7 @@ class GeneticAlgorithm:
             num_sensor = 12
             sensor_length = 100
             delta_t = 1
-            max_time_steps = 1000
+            max_time_steps = 500
 
             while generation < self.GEN_MAX:
                 # Evaluate our population (Calculate fitness)
@@ -164,28 +167,30 @@ class GeneticAlgorithm:
                         dust_collect, 
                         unique_positions, 
                         energy_used,
-                        delta_velocity, 
+                        rotation_measure, 
                         num_avg_collision
                     )   = run_network_simulation(delta_t,
-                                                          max_time_steps,
-                                                          network,
-                                                          agent,
-                                                          win,
-                                                          environment_surface,
-                                                          env,
-                                                          font)
+                                                max_time_steps,
+                                                network,
+                                                agent,
+                                                win,
+                                                environment_surface,
+                                                env,
+                                                font)
 
                     chromo["fit_dust_collect"] = dust_collect
                     chromo["fit_uniqe_pos"] = unique_positions
                     chromo["fit_energy_used"] = energy_used
-                    chromo["fit_delta_vel"] = delta_velocity
+                    chromo["fit_rotation_measure"] = rotation_measure
                     chromo["fit_num_collisions"] = num_avg_collision
-                    pprint(chromo)
+                    op_fitness = self.cal_fitness(chromo)
+
+                    print(chromo, op_fitness)
 
 
                 best_sample = max(population, key=self.fitness)
-                file.write(f"Gen: {generation}, Best Sample: {best_sample}, Fitness: {self.fitness(best_sample)}\n")
-                if self.fitness(best_sample) == 1:
+                file.write(f"Gen: {generation}, Best Sample: {best_sample}, Fitness: {self.cal_fitness(best_sample)}\n")
+                if self.cal_fitness(best_sample) == 1:
                     break
 
                 population = self.selection(population)
