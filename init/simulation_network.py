@@ -34,12 +34,14 @@ def run_network_simulation(
     energy_used = 0.0
     fitness_param_collision = []
     curr_dust_num = initial_dust_q
+    constant_reward = 3
     while sim_run and time_step < max_time_steps:
 
         if time_step % 40 == 0:
             if curr_dust_num > len(env.dust.group):
                 curr_dust_num = len(env.dust.group)
             else:
+                constant_reward -= 1
                 break
 
         for event in pygame.event.get():
@@ -74,6 +76,7 @@ def run_network_simulation(
                            )
 
         if collide:
+            constant_reward -= 2
             break
         # track agents path
         # agent_track.append((round(agent.pos_x,1), round(agent.pos_y,1)))
@@ -100,7 +103,7 @@ def run_network_simulation(
     # energy_used = np.round(energy_used / max_time_steps, 3)
     # rotation_measure = np.round(rotation_measure/max_time_steps, 3)
     # fitness_param_collision = np.round(((np.abs(np.array(fitness_param_collision)) > 0.8).sum() / max_time_steps), 3)
-    dust_collect = np.round(((initial_dust_q - len(env.dust.group)) / initial_dust_q), 3)
+    dust_collect = np.round((initial_dust_q - len(env.dust.group)), 3)
     unique_positions = 0
     energy_used = 0
     rotation_measure = 0
@@ -109,5 +112,5 @@ def run_network_simulation(
 
 
     pygame.quit()
-    return dust_collect+0.001, unique_positions, energy_used, rotation_measure, fitness_param_collision
+    return dust_collect+constant_reward, unique_positions, energy_used, rotation_measure, fitness_param_collision
 

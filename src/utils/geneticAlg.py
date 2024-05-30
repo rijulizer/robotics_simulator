@@ -194,8 +194,8 @@ class GeneticAlgorithm:
                     file.write(f"Gen: {generation}, Fitness: {sample['fitness']}, Result: {sample['results']}, Best Sample: {sample['Gen']}\n")
                 file.close()
 
-            if self.fitness(best_samples[0]) >= 1:
-                break
+            # if self.fitness(best_samples[0]) >= 1:
+            #     break
 
             population = self.selection(population)
             new_generation = []
