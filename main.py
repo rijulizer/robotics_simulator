@@ -19,7 +19,7 @@ ENV_OFFSET_Y = 200
 
 def draw_all(win, environment_surface, agents, velocities, delta_t, freeze, time_step, font):
     # Fill the window with white
-    win.fill((255, 255, 255))
+    win.fill((226, 200, 159 ))
 
     # Blit the pre rendered environment onto the screen
     win.blit(environment_surface, (0, 0))
@@ -79,7 +79,7 @@ def _init_GUI(num_landmarks):
 
     # Define environment surface
     environment_surface = pygame.Surface((win_length, win_height))
-    environment_surface.fill((255, 255, 255))
+    environment_surface.fill((226, 200, 159 ))
     # Initialize and draw environment
     env = Environment(environment_surface)
     # put landmarks on the environment
