@@ -104,6 +104,13 @@ def run_network_simulation(
         distance_min = 1
 
     fitness += dust_collect + (1 / distance_min)
+    # old fitness function 
+    # # return entities for fitness function 
+    # dust_collect = np.round(((initial_dust_q - len(env.dust.group)) / initial_dust_q), 3)
+    # unique_positions = np.round(len(set(agent_track)) / max_time_steps, 3)
+    # energy_used = np.round(energy_used / max_time_steps, 3)
+    # rotation_measure = np.round(rotation_measure/max_time_steps, 3)
+    # fitness_param_collision = np.round(((np.abs(np.array(fitness_param_collision)) > 0.8).sum() / max_time_steps), 3)
 
     # Warm Up Chromosomes
     # fitness *= count
