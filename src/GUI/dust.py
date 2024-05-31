@@ -14,7 +14,7 @@ class DustParticle:
                  i: int
                  ):
         pygame.sprite.Sprite.__init__(self)
-        self.pos_x,self.pos_y = position
+        self.pos_x, self.pos_y = position
         self.radius = size
         self.i = i
         #self.image = pygame.Surface(surface_length)
@@ -33,8 +33,8 @@ class Dust:
                  ):
         surface_x,surface_y = surface_size
         dust_density_x, dust_density_y = dust_density
-        dust_x_coordinates = [i for i in range(120, surface_x-100, dust_density_x)]
-        dust_y_coordinates = [i for i in range(120, surface_y-100, dust_density_y)]
+        dust_x_coordinates = [i for i in range(167, surface_x-120, dust_density_x)]
+        dust_y_coordinates = [i for i in range(160, surface_y-120, dust_density_y)]
         self.group = []
         index = 0
         count = 0

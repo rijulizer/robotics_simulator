@@ -4,6 +4,7 @@ import torch
 import pygame
 import numpy as np
 from src.agent.network import NetworkFromWeights
+from src.GUI.dust import Dust
 
 MAX_VELOCITY = 5.0
 
@@ -36,14 +37,15 @@ def run_network_simulation(
     curr_dust_num = initial_dust_q
     count = 0
     fitness = 0
+    reset_counter = 0
     while sim_run and time_step < max_time_steps:
 
-        # if time_step % 40 == 0:
-        #     count += 1
-        #     if curr_dust_num > len(env.dust.group):
-        #         curr_dust_num = len(env.dust.group)
-        #     else:
-        #         break
+        if time_step % 40 == 0:
+            count += 1
+            if curr_dust_num > len(env.dust.group):
+                curr_dust_num = len(env.dust.group)
+            else:
+                break
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -91,6 +93,10 @@ def run_network_simulation(
             draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
         else:
             draw_all_network(win, agent, env)
+
+        if len(env.dust.group) <= 50 and reset_counter <= 2:
+            env.dust = Dust((70, 60), 1, win.get_size())
+            reset_counter += 1
 
     dust_collect = np.round((initial_dust_q - len(env.dust.group)), 3)
 

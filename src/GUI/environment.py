@@ -22,7 +22,7 @@ class Environment:
         self.landmarks = None
         self.line_list = []
         self.init_environment(win)
-        self.dust = Dust((70, 60), 1, win.get_size())
+        self.dust = Dust((68, 65), 1, win.get_size())
 
     def init_environment(self, win):
         border_x, border_y = 100, 100
@@ -33,9 +33,9 @@ class Environment:
         self.create_border(win, border_x, border_y, border_len, border_height)
 
         # Define obstacle lines
-        obstacle_positions = [1, 2, 3]  # Divisions of border for obstacle lines
+        obstacle_positions = [1, 2, 3, 4, 5]  # Divisions of border for obstacle lines
         for position in obstacle_positions:
-            self.create_obstacle_line(win, position, border_x, border_y, border_len, border_height, 4)
+            self.create_obstacle_line(win, position, border_x, border_y, border_len, border_height, 6)
 
         # List of environment joint points
         self.points = self.calculate_joint_points(border_x, border_y, border_len, border_height, obstacle_positions)

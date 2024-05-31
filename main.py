@@ -38,7 +38,7 @@ sensor_length = 150
 #Parameters
 params = {
     "POP_SIZE": 200,
-    "CHROMOSOME_LENGTH": 54*5,
+    "CHROMOSOME_LENGTH": 210*5,
     "GEN_MAX": 100,
     "SELECTION_PARAM": {
         "type": "roulette",
