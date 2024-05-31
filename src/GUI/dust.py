@@ -35,6 +35,8 @@ class Dust:
         dust_density_x, dust_density_y = dust_density
         dust_x_coordinates = [i for i in range(120, surface_x-100, dust_density_x)]
         dust_y_coordinates = [i for i in range(120, surface_y-100, dust_density_y)]
+        # dust_x_coordinates = [i for i in range(167, surface_x-120, dust_density_x)] # Maze
+        # dust_y_coordinates = [i for i in range(160, surface_y-120, dust_density_y)]
         self.group = []
         index = 0
         count = 0

@@ -113,7 +113,7 @@ class NetworkFromWeights_2(Module):
         """ Decode weights and biases from raw genes
         """
         # achitecture: 14 -> 16 -> 2
-        arch = [10, 4, 2]
+        arch = [10, 8, 2]
         weights = []
         biases = []
         # rehspae the genes to the shape of the weights and biases for different layers
@@ -134,11 +134,12 @@ class NetworkFromWeights_2(Module):
     def decode_genes(self, binary_gene: str):
         """ Decode the binary gene raw(decimal) genetic code"""
         # total_params = w1+b1 + w2+b2, 14*16 + 16 + 16*2 + 2 = 274
-        # 6*4 + 4 + 4*2 + 2 = 30
-        if len(binary_gene) != 54 * BYTE_SIZE:
-            raise ValueError("Input string must be exactly 274 bits long.")
+        # 10 * 8 + 8 + 8 * 2 + 2 = 106
+        # 10 * 16 + 16 + 16 * 2 + 2 = 210
+        if len(binary_gene) != 106 * BYTE_SIZE:
+            raise ValueError("Input string must be exactly 2104 bits long.")
         # Split the binary string into 30 parts, each 8 bits
-        bytes_list = [binary_gene[i:i + BYTE_SIZE] for i in range(0, 54 * BYTE_SIZE, BYTE_SIZE)]
+        bytes_list = [binary_gene[i:i + BYTE_SIZE] for i in range(0, 106 * BYTE_SIZE, BYTE_SIZE)]
         decimal_values = []
         for byte in bytes_list:
             # Get the sign bit (MSB)
