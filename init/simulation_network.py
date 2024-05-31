@@ -32,20 +32,19 @@ def run_network_simulation(
     time_step = 1
     model_op = None
 
-    fitness_param_collision = []
 
     curr_dust_num = initial_dust_q
     count = 0
     fitness = 0
-    reset_counter = 0
+
     while sim_run and time_step < max_time_steps:
 
-        if time_step % 40 == 0:
-            count += 1
-            if curr_dust_num > len(env.dust.group):
-                curr_dust_num = len(env.dust.group)
-            else:
-                break
+        # if time_step % 40 == 0:
+        #     count += 1
+        #     if curr_dust_num > len(env.dust.group):
+        #         curr_dust_num = len(env.dust.group)
+        #     else:
+        #         break
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -53,7 +52,6 @@ def run_network_simulation(
 
         # get the output from the network
         sensor_data = np.array([s.sensor_text for s in agent.sensor_manager.sensors], dtype=np.float32).reshape(1, -1)
-
 
         sensor_input = np.array([sensor / agent.sensor_manager.sensor_length for sensor in sensor_data])
 
@@ -85,22 +83,12 @@ def run_network_simulation(
         # update the time ste
         time_step += 1
 
-        fitness_param_collision.append(np.min(sensor_input))
-        if np.min(sensor_input) > 0.2:
-            fitness_param_collision = []
-
         if display:
             draw_all(win, environment_surface, agent, vl, vr, delta_t, freeze, time_step, font, env)
         else:
             draw_all_network(win, agent, env)
 
-        if len(env.dust.group) <= 50 and reset_counter <= 2:
-            env.dust = Dust((70, 60), 1, win.get_size())
-            reset_counter += 1
-
     dust_collect = np.round((initial_dust_q - len(env.dust.group)), 3)
-
-    fitness_param_collision = np.round(((np.abs(np.array(fitness_param_collision)) < 0.2).sum()), 3)
 
     if dust_collect < 5:
         dust_collect = 0.00001
@@ -112,11 +100,12 @@ def run_network_simulation(
         if distance < distance_min:
             distance_min = distance
 
-    if fitness_param_collision == 0:
-        fitness_param_collision = 1
+    if distance_min == 0:
+        distance_min = 1
 
     fitness += dust_collect + (1 / distance_min)
-    # fitness /= fitness_param_collision
+
+    # Warm Up Chromosomes
     # fitness *= count
 
     pygame.quit()
