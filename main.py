@@ -4,6 +4,7 @@ from src.agent.network import NetworkFromWeights, NetworkFromWeights_2
 from init.utils.utils import _init_GUI
 import warnings
 
+
 # Filter out specific UserWarning regarding the use of `.T` on tensors
 warnings.filterwarnings("ignore",
                         message="The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release.")
@@ -36,17 +37,17 @@ sensor_length = 150
 
 #Parameters
 params = {
-    "POP_SIZE": 1000,
-    "CHROMOSOME_LENGTH": 274*5,
+    "POP_SIZE": 200,
+    "CHROMOSOME_LENGTH": 54*5,
     "GEN_MAX": 100,
     "SELECTION_PARAM": {
         "type": "roulette",
         "num_individuals": 30,
-        "tournament_size": 5
+        "tournament_size": 10
     },
     "MUTATION_PARAM": {
         "type": "uniform",
-        "rate": 0.1
+        "rate": 0.01
     },
     "CROSSOVER_PARAM": {
         "type": "uniform"

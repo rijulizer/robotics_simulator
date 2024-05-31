@@ -53,16 +53,6 @@ class GeneticAlgorithm:
             raise ValueError("Fitness not calculated")
         return chromosome["fitness"]
 
-    # Fitness function
-    def cal_fitness(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision):
-
-        # weights = np.array([10.0, 5.0, 3.0, 5.0, 6.0, 10.0])
-        weights = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        fitness_features = np.array(
-            [dust_collect, unique_positions, 1 - energy_used, 1 - rotation_measure, 1 - num_avg_collision, ((1 - rotation_measure) * (1 - num_avg_collision))])
-        # return float(np.average(fitness_features, weights=weights)), fitness_features
-        return dust_collect, dust_collect
-
     # Tournament Selection
     def _tournament_selection(self, population):
         selected = []
@@ -76,7 +66,7 @@ class GeneticAlgorithm:
         total_fitness = sum(self.fitness(chromo) for chromo in population)
         selection_probs = [self.fitness(chromo) / total_fitness for chromo in population]
 
-        return   random.choices(population, weights=selection_probs, k=self.SELECTION_PARAM["num_individuals"])
+        return random.choices(population, weights=selection_probs, k=self.SELECTION_PARAM["num_individuals"])
 
     def selection(self, population):
         if self.SELECTION_PARAM['type'] == 'tournament':
@@ -124,7 +114,6 @@ class GeneticAlgorithm:
         else:
             raise ValueError("Invalid crossover type")
 
-
     # Mutation - Uniform Mutation
     def _uniform_mutate(self, chromosome):
         chromosome = list(chromosome)
@@ -153,9 +142,9 @@ class GeneticAlgorithm:
 
     def simulate_chromosome(self, chromo):
         num_landmarks = 0
-        num_sensor = 12
+        num_sensor = 8
         sensor_length = 100
-        delta_t = 1
+        delta_t = 2
         max_time_steps = 100000000000
 
         network = NetworkFromWeights_2(chromo["Gen"], MAX_VELOCITY * 2)
@@ -163,9 +152,7 @@ class GeneticAlgorithm:
                                                                pygame_flags=pygame.HIDDEN)
         results = run_network_simulation(delta_t, max_time_steps, network, agent, win, environment_surface, env, font)
 
-        fitness, features = self.cal_fitness(*results)
-
-        return chromo["Gen"], fitness, features
+        return chromo["Gen"], results
 
     def genetic_algorithm(self):
         # Open file to write the results
@@ -177,40 +164,42 @@ class GeneticAlgorithm:
                                  file=sys.stdout)
 
         population = [self.random_chromosome() for _ in range(self.POP_SIZE)]
+        # gen_1 = "100001110011010101000111011010000010010011111100011110101100010111111011010101010101011010000110110100100101100000001100110110101001010100110101111101111001011000111101100101010101111111101101101111110111001010001101001001000011010000011000010101001000111011011000111000"
+        # gen_2 = "000001010111110101000111010011100010010001111101011110101100010111111011110101000101011010001100000101100101100000001110110111000001010110110100011101100011011000111101100101010101111111101101101111110111001010001011011001000011010000011000010101000000111001001000111000"
+        # gen_3 = "100001110011010101000111111010000010010011110101011110101110010111111011010101010101011010000100100100100101100000001100110110001001010100110101011101110011011000111101100101010101111111101101101111110111001010001101001001000011011000011000010101001000111001001000111000"
+        # gen_4 = "000001110101110101000111010011110010010001111000011110101000010110110111110001000101011010000100000111010101100100001110110111001001001111110100001101100001000000111101100101010101111111101101101111110111001010001011011001000011010100011000010101000000111001001000111000"
+        # gen_5 = "000000110111100101000101111010000000010011110101011110101010010111111010110101111101011010100110100100100100100000001100110110000011011101110101011111110011011000111101100101010101111111100001001111010110001010000101001001001011011000011000010101001001111001101000110000"
+        #
+        # population.append({"Gen": gen_1, "fitness": -1})
+        # population.append({"Gen": gen_2, "fitness": -1})
+        # population.append({"Gen": gen_3, "fitness": -1})
+        # population.append({"Gen": gen_4, "fitness": -1})
+        # population.append({"Gen": gen_5, "fitness": -1})
 
         while generation < self.GEN_MAX:
             with Pool(multiprocessing.cpu_count()) as pool:
                 # Iterate by batches of 100
                 for i in range(0, len(population), 100):
                     results = pool.map(self.simulate_chromosome, population[i:i + 100])
-                    for j, (chromo, fitness, r) in enumerate(results):
+                    for j, (chromo, fitness) in enumerate(results):
                         population[i + j]["Gen"] = chromo
                         population[i + j]["fitness"] = fitness
-                        population[i + j]["results"] = r
                     progress_bar.update(len(results))
-            # results = [self.simulate_chromosome(chromo) for chromo in population]
-            # for i, (chromo, fitness, r) in enumerate(results):
-            #     population[i]["Gen"] = chromo
-            #     population[i]["fitness"] = fitness
-            #     population[i]["results"] = r
-            # progress_bar.update(len(results))
 
-            best_samples = heapq.nlargest(20, population, key=lambda x: self.fitness(x))
+            best_samples = heapq.nlargest(5, population, key=lambda x: self.fitness(x))
             with open('src/data/genEvo/genetic_algorithm_results_1.txt', 'a') as file:
                 for sample in best_samples:
-                    file.write(f"Gen: {generation}, Fitness: {sample['fitness']}, Result: {sample['results']}, Best Sample: {sample['Gen']}\n")
+                    file.write(f"Gen: {generation}, Fitness: {sample['fitness']}, Best Sample: {sample['Gen']}\n")
                 file.close()
-
-            # if self.fitness(best_samples[0]) >= 1:
-            #     break
 
             population = self.selection(population)
             new_generation = []
+
             new_generation.extend(best_samples)
 
             while len(new_generation) < self.POP_SIZE:
                 parent1, parent2 = random.sample(population, 2)
-                child1, child2 = self.crossover(parent1["Gen"], parent2["Gen"])
+                child1, child2 = self.crossover(parent1["Gen"], parent1["Gen"])
                 new_generation.append(self.mutate(child1))
                 new_generation.append(self.mutate(child2))
 
@@ -220,8 +209,8 @@ class GeneticAlgorithm:
 
         progress_bar.close()
 
-
-    def run_print(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision, final_fitness):
+    def run_print(self, dust_collect, unique_positions, energy_used, rotation_measure, num_avg_collision,
+                  final_fitness):
         print(f"\nDust Collected: {dust_collect}")
         print(f"Unique Positions: {unique_positions}")
         print(f"Energy Used: {energy_used}")
