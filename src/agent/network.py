@@ -117,7 +117,7 @@ class NetworkFromWeights_2(Module):
         weights = []
         biases = []
         # rehspae the genes to the shape of the weights and biases for different layers
-        w_index_1 = arch[0]*arch[1]
+        w_index_1 = arch[0] * arch[1]
         w_index_2 = w_index_1 + arch[1] * arch[2]
         b_index_1 = w_index_2 + arch[1]
         b_index_2 = b_index_1 + arch[2] 

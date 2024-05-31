@@ -71,9 +71,9 @@ def run_network_simulation(
                                     False
                                     )
 
-        if collide:
-            fitness = -0.5
-            break
+        # if collide:
+        #     fitness = -0.5
+        #     break
 
         if not success:
             delta_t_curr -= 0.1
@@ -89,9 +89,6 @@ def run_network_simulation(
             draw_all_network(win, agent, env)
 
     dust_collect = np.round((initial_dust_q - len(env.dust.group)), 3)
-
-    if dust_collect < 5:
-        dust_collect = 0.00001
 
     # Find the closest dot to the agent
     distance_min = 100000
